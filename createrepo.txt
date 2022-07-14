@@ -4,7 +4,7 @@
 4. Копируем в папку Eltex локальные файлы
 5. Заходим в папку Eltex cd Eltex
 6. git status должны быть красным файлы
-7. Создаем токен на гитхабе в вебе и ремотем его себе git remote set-url origin https://xzxcuzme:ТОКЕН@github.com/ЮЗЕР/Eltex.git
+7. Создаем токен на гитхабе в вебе и ремотем его себе git remote set-url origin https://ЮЗЕР:ТОКЕН@github.com/ЮЗЕР/Eltex.git
 8. Добавляем файлы в коммит git add -A
 9. Создаем коммит git commit -m "First commit"
 10. Пушим коммит в ГХ git push
