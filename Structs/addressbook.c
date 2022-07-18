@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-char x = 3;
+int x = 4;
 char* search = "efim";
 
 int main()
@@ -61,6 +61,17 @@ int main()
 					}
 				}
 			break;
+		case 4:
+			for (int i = 0; i < 10; ++i)
+				{
+					mydata[i].name=0;
+					mydata[i].surname=0;
+					mydata[i].phone=0;
+					printf("Name: %s %s phone: %d\n", 
+					mydata[i].name, mydata[i].surname, mydata[i].phone);	
+				}
+			break;
+
 	}
 
 	// printf("%d\n", ptr -> name);
