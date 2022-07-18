@@ -15,7 +15,7 @@ int main(void)
 	printf("Second byte of a = 0х%x\n", *ptr);
 	ptr++;
 
-	// *ptr=88;
+	// *ptr=88; меняем бит
 
 
 	printf("Third byte of a = %d\n", *ptr);

@@ -20,11 +20,13 @@ int main()
 
 	ptr = (struct test *) &a;
 
-	printf("%p\n", ptr);
-	// printf("%c\n", *ptr);
-	ptr -> b5 = 1;
-	printf("%c\n", test.b5);
-
-	// printf("%ld\n", sizeof(test));
 	
+
+	printf("%d\n", ptr -> b5);
+
+	ptr -> b5 = 0; //(*ptr).b5
+
+	printf("%d\n", ptr -> b5);
+
+
 }  

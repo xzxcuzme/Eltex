@@ -14,7 +14,8 @@ int main()
 	my_test.b=123;
 
 	printf("%ld\n", sizeof(struct test));
-	
+
 	printf("%c\n", my_test.a);
 	printf("%d\n", my_test.b);
+
 }
