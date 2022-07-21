@@ -1,42 +1,37 @@
 #include <stdio.h>
 #include <string.h>
 
-int x;
-char searchinput[30];
-char *search = "efim";
+#define N 30
+#define M 10
 
-char *delname;// = "igor";
-char *delsurnamename;// = "glaz";
-int delphone = 12488;
+char searchinput[N], search[N], delname[N], delsurnamename[N], delsurnamename[N], addname[N], addsurname[N];
+int x, delphone, searchphone, addphone;
 
 int main()
 {
 	struct data
 	{
-		char *name;
-		char *surname;
+		char name[N];
+		char surname[N];
 		int phone; 
 	};
 
-	struct data mydata[10]={};
-	// struct data *ptr;
+	struct data mydata[M]={0};
+	struct data *ptr=NULL;
 
-	// ptr = & mydata[10];
+	ptr = &mydata[N];
 
-	// strcpy(mydata -> name, "igorr");
-	// strcpy(mydata -> name, "irr");
-
-	//&ptr -> name[0] = "igor"; // *ptr.name = "igor"
-
-	printf("Size of data structure: %lu\n\n", sizeof(mydata));
-
-	mydata[0].name = "igor";
-	mydata[0].surname = "prikh";
+	strncpy(mydata[0].name, "igor", N);
+	strncpy(mydata[0].surname, "prikh", N);
 	mydata[0].phone = 12488;
 
-	mydata[1].name = "efim";
-	mydata[1].surname = "glaz";
-	mydata[1].phone = 2477;
+	strncpy(mydata[1].name, "efim", N);
+	strncpy(mydata[1].surname, "glaz", N);
+	mydata[1].phone = 24772;
+
+	strncpy(mydata[2].name, "igor", N);
+	strncpy(mydata[2].surname, "korygin", N);
+	mydata[2].phone = 20301;
 
 	while (1)
 	{
@@ -44,50 +39,47 @@ int main()
 		scanf("%d", &x);
 		switch (x) {
 			case 1: // добавление
-				for (int i = 0; i < 10; ++i)
+				for (int i = 0; i < M; ++i)
 				{
-					if (mydata[i].name == 0) {
+					if (mydata[i].phone == 0) {
 
-						mydata[i].name = "ilya";
-						mydata[i].surname = "tri";
-						mydata[i].phone = 444111;
+						printf("Введите имя \n");
+						scanf("%s", addname);
+						strncpy(mydata[i].name, addname, N);
+						printf("Введите фамилию \n");
+						scanf("%s", addsurname);
+						strncpy(mydata[i].surname, addsurname, N);
+						printf("Введите телефон \n");
+						scanf("%d", &addphone);
+						mydata[i].phone = addphone;
 						printf("Добавлена запись\nName: %s %s phone: %d\n", 
 						mydata[i].name, mydata[i].surname, mydata[i].phone);
 						break;
 					} 
-
-					else
-
-					{
-						printf("Name: %s %s phone: %d\n", 
-						mydata[i].name, mydata[i].surname, mydata[i].phone);
-					} 
 				}
 			break;
 			case 2: // поиск
-				//printf("Введите имя\n");
-				//scanf("%c", search);
+				printf("Введите имя или фамилию\n");
+				scanf("%s", search);
+				printf("Введите телефон\n");
+				scanf("%d", &searchphone);
 				
-				for (int i = 0; i < 10; ++i)
+				for (int i = 0; i < M; ++i)
 					{	
-						printf("%s %d\n", search, i);
-						printf("%s %d\n", mydata[i].name, i);
-						if (search==mydata[i].name)
+						if (strcmp(search, mydata[i].name) == 0 ||
+							strcmp(search, mydata[i].surname) == 0 || 
+							searchphone == mydata[i].phone)
 						{
 							printf("Name: %s %s phone: %d\n", 
 							mydata[i].name, mydata[i].surname, mydata[i].phone);
-							break;
-						}
-
-						else {
-							printf("не нашел %d \n", i);
+							
 						}
 					}
 				break;
-			case 3: //список
-				for (int i = 0; i < 10; ++i)
+			case 3: // список
+				for (int i = 0; i < M; ++i)
 					{
-						if (mydata[i].name != 0)
+						if (1)
 						{
 							printf("Name: %s Surname: %s Phone: %d\n", 
 							mydata[i].name, mydata[i].surname, mydata[i].phone);
@@ -95,30 +87,37 @@ int main()
 					}
 				break;
 			case 4: // удаление
-				for (int i = 0; i < 10; ++i)
+				printf("Введите имя \n");
+				scanf("%s", delname);
+				
+				printf("Введите фамилию \n");
+				scanf("%s", delsurnamename);
+				
+				printf("Введите телефон \n");
+				scanf("%d", &delphone);
 
-					if (mydata[i].name == delname || 
-						mydata[i].surname == delsurnamename || 
-						mydata[i].phone == delphone)
+				for (int i = 0; i < M; ++i)
 					{
-						printf("Name: %s %s phone: %d\n", 
-						mydata[i].name, mydata[i].surname, mydata[i].phone);
-						mydata[i].name=0;
-						mydata[i].surname=0;
-						mydata[i].phone=0;
-						printf("Удалено \n");
-						break;
-					} 
-				break;
+						if (mydata[i].name == 0)
+						{
+
+						} else {
+							if (strcmp(delname, mydata[i].name) == 0 ||
+								strcmp(delsurnamename, mydata[i].surname) == 0 || 
+								delphone == mydata[i].phone)
+							{
+								printf("Name: %s %s phone: %d\n", 
+								mydata[i].name, mydata[i].surname, mydata[i].phone);
+								strncpy(mydata[i].name, "0", N);
+								strncpy(mydata[i].surname, "0", N);
+								mydata[i].phone=0;
+								printf("Удалено \n");
+								
+							}
+						}	
+						
+					}
+
 		}
 	}
-
-	
-
-	// printf("%d\n", ptr -> name);
-
-	// ptr -> b5 = 0; //(*ptr).b5
-
-	// printf("%d\n", ptr -> b5);
-
 }  
