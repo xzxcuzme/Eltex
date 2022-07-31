@@ -4,7 +4,7 @@
 #define N 30
 #define M 10
 
-char searchinput[N], search[N], delname[N], delsurnamename[N], delsurnamename[N], addname[N], addsurname[N];
+char searchinput[N], search[N], delname[N], delsurnamename[N], addname[N], addsurname[N];
 int x, delphone, searchphone, addphone;
 
 int main()
@@ -19,7 +19,7 @@ int main()
 	struct data mydata[M]={0};
 	struct data *ptr=NULL;
 
-	ptr = &mydata[N];
+	ptr = &mydata[M];
 
 	strncpy(mydata[0].name, "igor", N);
 	strncpy(mydata[0].surname, "prikh", N);
