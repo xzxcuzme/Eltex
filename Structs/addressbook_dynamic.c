@@ -17,15 +17,14 @@ int main(void)
 	};
 
 	int n=3, strsize;
-	strsize = sizeof(struct data);
-
 	struct data *mydata;
 
 	if (mydata < 0) {
 		perror("Out of memory!\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
+	strsize = sizeof(struct data);
 	mydata = malloc(sizeof(struct data)*n);
 
 	strncpy(mydata[0].name, "igor", N);
@@ -58,19 +57,15 @@ int main(void)
 					    	long addphone;
 					        printf("name=");
 							scanf("%s", mydata[i].name);
-							//strncpy(mydata[i].name, addname, sizeof(addname));
 					        printf("surname=");
 							scanf("%s", mydata[i].surname);
-							//strncpy(mydata[i].surname, addname, sizeof(addname));
 							printf("phone=");
 							scanf("%ld", &mydata[i].phone);
-							//mydata[i].phone = addphone;
 							printf("Добавлена запись\nName: %s Surname %s Phone: %ld\n", 
 							mydata[i].name, mydata[i].surname, mydata[i].phone);
 							break;
 						}
 				    }
-
 				    break;
 
 				case 2: //поиск
@@ -124,7 +119,7 @@ int main(void)
 
 						for (int i = 0; i < n*sizeof(struct data)/strsize; ++i)
 						{
-							if (strcmp(delname, mydata[i].name) == 0 ||
+							if (strcmp(delname, mydata[i].name) == 0 &&
 								strcmp(delname, mydata[i].surname) == 0 || 
 								delphone == mydata[i].phone)
 							{
