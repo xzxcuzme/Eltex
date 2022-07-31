@@ -5,7 +5,6 @@
 #include <string.h>
 
 #define N 30
-#define M 5
 
 int main(void)
 {
@@ -21,6 +20,11 @@ int main(void)
 	strsize = sizeof(struct data);
 
 	struct data *mydata;
+
+	if (mydata < 0) {
+		perror("Out of memory!\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	mydata = malloc(sizeof(struct data)*n);
 
@@ -146,6 +150,6 @@ int main(void)
 
 		}
 
-	    free(mydata);
+    free(mydata);
     return 0;
 }
