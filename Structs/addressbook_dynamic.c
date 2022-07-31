@@ -19,13 +19,13 @@ int main(void)
 	int n=3, strsize;
 	struct data *mydata;
 
-	if (mydata < 0) {
+	strsize = sizeof(struct data);
+	mydata = malloc(sizeof(struct data)*n);
+
+	if (mydata < 0 || mydata == NULL) {
 		perror("Out of memory!\n");
 		exit(EXIT_FAILURE);
 	}
-
-	strsize = sizeof(struct data);
-	mydata = malloc(sizeof(struct data)*n);
 
 	strncpy(mydata[0].name, "igor", N);
 	strncpy(mydata[0].surname, "prikh", N);
@@ -43,31 +43,30 @@ int main(void)
 		{
 			short x;
 			printf("1. Добавление абонента\n2. Поиск абонента\n3. Список абонентов\n4. Удалить абонента\n5. Выйти из программы\n");
+			
 			scanf("%hd", &x);
 			switch (x)
 			{
 				case 1: //добавление
+				{
 					n++;
 					mydata = realloc (mydata, (sizeof(struct data)*n));
-				    for(int i=0;i<n; i++)
-				    {
-				    	if (mydata[i].phone == 0) 
-				    	{
-					    	char addname[N];
-					    	long addphone;
-					        printf("name=");
-							scanf("%s", mydata[i].name);
-					        printf("surname=");
-							scanf("%s", mydata[i].surname);
-							printf("phone=");
-							scanf("%ld", &mydata[i].phone);
-							printf("Добавлена запись\nName: %s Surname %s Phone: %ld\n", 
-							mydata[i].name, mydata[i].surname, mydata[i].phone);
-							break;
-						}
-				    }
+					if (mydata < 0 || mydata == NULL) {
+						perror("Out of memory!\n");
+						exit(EXIT_FAILURE);
+					}
+			    	char addname[N];
+			    	long addphone;
+			        printf("name=");
+					scanf("%s", mydata[n-1].name);
+			        printf("surname=");
+					scanf("%s", mydata[n-1].surname);
+					printf("phone=");
+					scanf("%ld", &mydata[n-1].phone);
+					printf("Добавлена запись\nName: %s Surname %s Phone: %ld\n", 
+					mydata[n-1].name, mydata[n-1].surname, mydata[n-1].phone);
 				    break;
-
+				}
 				case 2: //поиск
 					{
 						char search[N];
@@ -77,7 +76,7 @@ int main(void)
 						printf("Введите телефон\n");
 						scanf("%ld", &searchphone);
 
-						for (int i = 0; i < n*sizeof(struct data)/strsize; ++i)
+						for (int i = 0; i < n; ++i)
 						{	
 							if (strcmp(search, mydata[i].name) == 0 ||
 								strcmp(search, mydata[i].surname) == 0 || 
@@ -93,7 +92,7 @@ int main(void)
 				case 3: //список
 					for(int i=0;i<n; i++)
 					{
-						if (mydata[i].phone != 0)
+						//if (mydata[i].phone != 0)
 					    {
 							printf("name=%s ", mydata[i].name);
 							printf("surname=%s ", mydata[i].surname);
@@ -105,44 +104,59 @@ int main(void)
 
 				case 4: //удаление
 					{
-						char delname[N];
+						char delname[N], delsurname[N];
 						long delphone;
 
 						printf("Введите имя \n");
 						scanf("%s", delname);
 						
 						printf("Введите фамилию \n");
-						scanf("%s", delname);
+						scanf("%s", delsurname);
 						
 						printf("Введите телефон \n");
 						scanf("%ld", &delphone);
 
-						for (int i = 0; i < n*sizeof(struct data)/strsize; ++i)
+						for (int i = 0; i < n; ++i)
 						{
 							if (strcmp(delname, mydata[i].name) == 0 &&
-								strcmp(delname, mydata[i].surname) == 0 || 
+								strcmp(delsurname, mydata[i].surname) == 0 || 
 								delphone == mydata[i].phone)
 							{
-								printf("Name: %s Surname: %s Phone: %ld\n", 
-								mydata[i].name, mydata[i].surname, mydata[i].phone);
-								strncpy(mydata[i].name, "0", sizeof(delname));
-								strncpy(mydata[i].surname, "0", sizeof(delname));
-								mydata[i].phone=0;
-								printf("Удалено \n");
-								
+								if (i<n-1)
+								{
+									printf("Name: %s Surname: %s Phone: %ld\n", 
+									mydata[i].name, mydata[i].surname, mydata[i].phone);
+									memcpy(mydata[i].name, mydata[i+1].name, N);
+									strncpy(mydata[i+1].name, mydata[n-1].name, sizeof(delname));
+									memcpy(mydata[i].surname, mydata[i+1].surname, N);
+									strncpy(mydata[i+1].surname, mydata[n-1].surname, sizeof(delsurname));
+									memcpy(&mydata[i].phone, &mydata[i+1].phone, sizeof(mydata[i].phone));
+									mydata[i+1].phone=mydata[n-1].phone;
+									printf("Удалено \n");
+								} else {
+									printf("Name: %s Surname: %s Phone: %ld\n", 
+									mydata[i].name, mydata[i].surname, mydata[i].phone);
+									printf("Удалено \n");
+								}
+								n--;
 							}
 						}
 					}
+					
 					break;
 
 				case 5: //выход
+				{
+					free(mydata);
 					return 0;
+				}
 
-				default:{
+				default:
+				{
+					free(mydata);
 					return 0;
 				}
 			}
-
 		}
 
     free(mydata);
