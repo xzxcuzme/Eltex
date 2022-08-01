@@ -54,8 +54,6 @@ int main(void)
 						perror("Out of memory!\n");
 						exit(EXIT_FAILURE);
 					}
-			    	char addname[N];
-			    	long addphone;
 			        printf("name=");
 					scanf("%s", mydata[n-1].name);
 			        printf("surname=");
@@ -117,8 +115,8 @@ int main(void)
 
 						for (int i = 0; i < n; ++i)
 						{
-							if (strcmp(delname, mydata[i].name) == 0 &&
-								strcmp(delsurname, mydata[i].surname) == 0 || 
+							if ((strcmp(delname, mydata[i].name) == 0 &&
+								strcmp(delsurname, mydata[i].surname)) == 0 || 
 								delphone == mydata[i].phone)
 							{
 								if (i<n-1)
