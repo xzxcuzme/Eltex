@@ -16,10 +16,9 @@ int main(void)
 		long phone; 
 	};
 
-	int n=3, strsize;
+	int n=3;
 	struct data *mydata;
 
-	strsize = sizeof(struct data);
 	mydata = malloc(sizeof(struct data)*n);
 
 	if (mydata < 0 || mydata == NULL) {
