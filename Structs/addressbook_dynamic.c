@@ -59,7 +59,7 @@ int main(void)
 			switch (x)
 			{
 				case ACTION_ADD:
-				//action_add(&address_book[n], 3);
+				//action_add(address_book, n);
 					{
 						n++;
 						char name[NAME_LEN], surname[SURNAME_LEN];
@@ -106,15 +106,8 @@ int main(void)
 					}
 
 				case ACTION_LIST:
-					for(int i=0;i<n; i++)
-					{
-					    {
-					    	address_book_get(&address_book[i]);
-						}
-					}
-					printf("\n");	 
+					action_list(address_book, n);	 
 					break;
-
 				case ACTION_DEL:
 					{
 						char delname[NAME_LEN], delsurname[SURNAME_LEN];
