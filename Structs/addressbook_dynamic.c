@@ -3,70 +3,90 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include "AddressBookRecord.h"
 
-#define N 30
+// int get_test_addressbook(address_book**)
+// {
+
+// }
 
 int main(void)
 {
-
-	struct data
-	{
-		char name[N];
-		char surname[N];
-		long phone; 
-	};
-
 	int n=3;
-	struct data *mydata;
+	Address_book_t *address_book;
 
-	mydata = malloc(sizeof(struct data)*n);
+	address_book = calloc(n, sizeof(Address_book_t));
 
-	if (mydata < 0 || mydata == NULL) {
+	if (address_book == NULL) {
 		perror("Out of memory!\n");
 		exit(EXIT_FAILURE);
 	}
 
-	strncpy(mydata[0].name, "igor", N);
-	strncpy(mydata[0].surname, "prikh", N);
-	mydata[0].phone = 12488;
+	strncpy(address_book[0].name, "igor", NAME_LEN);
+	strncpy(address_book[0].surname, "prikh", SURNAME_LEN);
+	address_book[0].phone = 12488;
 
-	strncpy(mydata[1].name, "efim", N);
-	strncpy(mydata[1].surname, "glaz", N);
-	mydata[1].phone = 24772;
+	strncpy(address_book[1].name, "efim", NAME_LEN);
+	strncpy(address_book[1].surname, "glaz", SURNAME_LEN);
+	address_book[1].phone = 24772;
 
-	strncpy(mydata[2].name, "igor", N);
-	strncpy(mydata[2].surname, "korygin", N);
-	mydata[2].phone = 20301;
+	strncpy(address_book[2].name, "igor", NAME_LEN);
+	strncpy(address_book[2].surname, "korygin", SURNAME_LEN);
+	address_book[2].phone = 20301;
 
 	while (1)
 		{
 			short x;
-			printf("1. Добавление абонента\n2. Поиск абонента\n3. Список абонентов\n4. Удалить абонента\n5. Выйти из программы\n");
-			
-			scanf("%hd", &x);
+			enum Action {
+				ACTION_ADD=1,
+				ACTION_SEARCH,
+				ACTION_LIST,
+				ACTION_DEL,
+				ACTION_EXIT
+			};
+			menu();
+			if (scanf("%hd%*c", &x)!=1)
+			{
+				do {
+					printf("Ошибка ввода, попробуй еще раз\n");
+					scanf("%*[^\n]");
+					menu();
+					scanf("%hd%*c", &x);
+				}
+				while (x==1);
+			}
+			//scanf("%hd%*c", &x);
 			switch (x)
 			{
-				case 1: //добавление
-				{
-					n++;
-					mydata = realloc (mydata, (sizeof(struct data)*n));
-					if (mydata < 0 || mydata == NULL) {
-						perror("Out of memory!\n");
-						exit(EXIT_FAILURE);
-					}
-			        printf("name=");
-					scanf("%s", mydata[n-1].name);
-			        printf("surname=");
-					scanf("%s", mydata[n-1].surname);
-					printf("phone=");
-					scanf("%ld", &mydata[n-1].phone);
-					printf("Добавлена запись\nName: %s Surname %s Phone: %ld\n", 
-					mydata[n-1].name, mydata[n-1].surname, mydata[n-1].phone);
-				    break;
-				}
-				case 2: //поиск
+				case ACTION_ADD:
+				//action_add(&address_book[n], 3);
 					{
-						char search[N];
+						n++;
+						char name[NAME_LEN], surname[SURNAME_LEN];
+						long phone;
+						address_book = realloc (address_book, (sizeof(Address_book_t)*n));
+						if (address_book == NULL) {
+							perror("Out of memory!\n");
+							exit(EXIT_FAILURE);
+						}
+						printf("Введите имя:\n");
+						fgets(name, sizeof(name), stdin);
+						address_book_name_set(&address_book[n-1], name);
+						printf("Введите фамилию:\n");
+						fgets(surname, sizeof(surname), stdin);
+						address_book_surname_set(&address_book[n-1], surname);
+						printf("Введите телефон:\n");
+						//scanf("%ld", &phone);
+						address_book_phone_set(&address_book[n-1], phone);
+						printf("Добавлена запись\n");
+						address_book_get(&address_book[n-1]);
+					    
+					}
+				break;
+				
+				case ACTION_SEARCH:
+					{
+						char search[NAME_LEN];
 						long searchphone;
 						printf("Введите имя или фамилию\n");
 						scanf("%s", search);
@@ -75,33 +95,29 @@ int main(void)
 
 						for (int i = 0; i < n; ++i)
 						{	
-							if (strcmp(search, mydata[i].name) == 0 ||
-								strcmp(search, mydata[i].surname) == 0 || 
-								searchphone == mydata[i].phone)
+							if (strncmp(search, address_book[i].name, sizeof(search)) == 0 ||
+								strncmp(search, address_book[i].surname, sizeof(search)) == 0 || 
+								searchphone == address_book[i].phone)
 							{
-								printf("Name: %s Surname: %s Phone: %ld\n", 
-								mydata[i].name, mydata[i].surname, mydata[i].phone);
+								address_book_get(&address_book[i]);
 							}
 						}
 						break;
 					}
 
-				case 3: //список
+				case ACTION_LIST:
 					for(int i=0;i<n; i++)
 					{
-						//if (mydata[i].phone != 0)
 					    {
-							printf("name=%s ", mydata[i].name);
-							printf("surname=%s ", mydata[i].surname);
-							printf("phone=%ld\n", mydata[i].phone);
+					    	address_book_get(&address_book[i]);
 						}
 					}
 					printf("\n");	 
 					break;
 
-				case 4: //удаление
+				case ACTION_DEL:
 					{
-						char delname[N], delsurname[N];
+						char delname[NAME_LEN], delsurname[SURNAME_LEN];
 						long delphone;
 
 						printf("Введите имя \n");
@@ -115,26 +131,25 @@ int main(void)
 
 						for (int i = 0; i < n; ++i)
 						{
-							if ((strcmp(delname, mydata[i].name) == 0 &&
-								strcmp(delsurname, mydata[i].surname) == 0) || 
-								delphone == mydata[i].phone)
+							if ((strncpy(delname, address_book[i].name, sizeof(delname)) == 0 &&
+								strncpy(delsurname, address_book[i].surname, sizeof(delsurname)) == 0) || 
+								delphone == address_book[i].phone)
 							{
 								if (i<n-1)
 								{
-									printf("Name: %s Surname: %s Phone: %ld\n", 
-									mydata[i].name, mydata[i].surname, mydata[i].phone);
-									memcpy(mydata[i].name, mydata[i+1].name, N);
-									strncpy(mydata[i+1].name, mydata[n-1].name, sizeof(delname));
-									memcpy(mydata[i].surname, mydata[i+1].surname, N);
-									strncpy(mydata[i+1].surname, mydata[n-1].surname, sizeof(delsurname));
-									memcpy(&mydata[i].phone, &mydata[i+1].phone, sizeof(mydata[i].phone));
-									mydata[i+1].phone=mydata[n-1].phone;
-									printf("Удалено \n");
+									address_book_get(&address_book[i]);
+									strncpy(address_book[i].name, address_book[i+1].name, sizeof(delname));
+									strncpy(address_book[i+1].name, address_book[n-1].name, sizeof(delname));
+									strncpy(address_book[i].surname, address_book[i+1].surname, sizeof(delsurname));
+									strncpy(address_book[i+1].surname, address_book[n-1].surname, sizeof(delsurname));
+									address_book[i].phone=address_book[i+1].phone;
+									address_book[i+1].phone=address_book[n-1].phone;
+									
 								} else {
-									printf("Name: %s Surname: %s Phone: %ld\n", 
-									mydata[i].name, mydata[i].surname, mydata[i].phone);
-									printf("Удалено \n");
+									address_book_get(&address_book[i]);
+									
 								}
+								printf("Удалено \n");
 								n--;
 							}
 						}
@@ -142,20 +157,20 @@ int main(void)
 					
 					break;
 
-				case 5: //выход
-				{
-					free(mydata);
-					return 0;
-				}
+				case ACTION_EXIT:
+					{
+						free(address_book);
+						return 0;
+					}
 
 				default:
-				{
-					free(mydata);
-					return 0;
-				}
+					{
+						free(address_book);
+						return 0;
+					}
 			}
 		}
-
-    free(mydata);
+    free(address_book);
     return 0;
 }
+
