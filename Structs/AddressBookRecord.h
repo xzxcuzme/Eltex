@@ -37,7 +37,7 @@ int address_book_surname_set (Address_book_t *address_book,
 
 int address_book_phone_set (Address_book_t *address_book, long phone) 
 {
-	if (check(&phone)) return -1;
+	//if (check(&phone)) return -1;
 	address_book -> phone=phone;
 	return 0;
 }
@@ -64,31 +64,38 @@ int action_list(Address_book_t *address_book,
 	return 0;
 }
 
-int action_add(Address_book_t *address_book, 
-	int n)
+int clear_scanf() 
 {
-	n++;
-	char name[NAME_LEN], surname[SURNAME_LEN];
-	long phone;
-	address_book = realloc (address_book, (sizeof(Address_book_t)*n));
-	if (address_book == NULL) {
-		perror("Out of memory!\n");
-		exit(EXIT_FAILURE);
-	}
-	printf("Введите имя:\n");
-	fgets(name, sizeof(name), stdin);
-	address_book_name_set(&address_book[n-1], name);
-	printf("Введите фамилию:\n");
-	fgets(surname, sizeof(surname), stdin);
-	address_book_surname_set(&address_book[n-1], surname);
-	printf("Введите телефон:\n");
-	//scanf("%ld", &phone);
-	address_book_phone_set(&address_book[n-1], phone);
-	printf("Добавлена запись\n");
-	address_book_get(&address_book[n-1]);
+	char c_for_clear;
+	do 
+	{
+		c_for_clear = getchar();
+	} while (c_for_clear != EOF && c_for_clear != '\n');
+	printf("буфер очищен\n");
 	return 0;
 }
 
-int actrion_search(Address_book_t *address_book) {
-	
-}
+// int action_add(Address_book_t *address_book, 
+// 	int n)
+// {
+
+// 	char name[NAME_LEN], surname[SURNAME_LEN];
+// 	long phone;
+
+// 	printf("Введите имя:\n");
+// 	fgets(name, sizeof(name), stdin);
+// 	address_book_name_set(&address_book[n-1], name);
+// 	printf("Введите фамилию:\n");
+// 	fgets(surname, sizeof(surname), stdin);
+// 	address_book_surname_set(&address_book[n-1], surname);
+// 	printf("Введите телефон:\n");
+// 	//scanf("%ld", &phone);
+// 	address_book_phone_set(&address_book[n-1], phone);
+// 	printf("Добавлена запись\n");
+// 	address_book_get(&address_book[n-1]);
+// 	return 0;
+// }
+
+// int actrion_search(Address_book_t *address_book) {
+
+// }
