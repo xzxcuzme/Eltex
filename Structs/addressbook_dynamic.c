@@ -19,7 +19,7 @@ int main(void)
 	get_test_addressbook(address_book); 
 	while (1)
 		{
-			unsigned int x;
+			unsigned int x, xx;
 			enum Action {
 				ACTION_FIRST,
 				ACTION_ADD,
@@ -30,11 +30,10 @@ int main(void)
 				ACTION_COUNT
 			};
 			menu();
-			scanf("%u", &x);
-
-			//x=scan_int();
-			if(x > ACTION_FIRST && x < ACTION_COUNT)
+			xx=scanf("%u", &x);
+			if(x > ACTION_FIRST && x < ACTION_COUNT && xx==1)
 			{
+				
 				switch (x)
 				{
 					case ACTION_ADD:

@@ -98,6 +98,7 @@ int scan_int() {
 	while (scanf("%u", &x)==0);
 	{
 	printf("Попробуй еще разок\n");
+	clear_scanf();
 	} 
 	return x;
 }
