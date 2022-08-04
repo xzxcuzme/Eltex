@@ -14,66 +14,26 @@ typedef struct Address_book_record
 	long phone; 
 } Address_book_t;
 
-int check(long *phone) {
-	if (scanf("%ld%*c", phone)==1) return 0;
-	else return -1;
-}
+int check(long *phone);
 
 int address_book_name_set (Address_book_t *address_book,
-	char *name) 
-{
-	if (strlen(name)>=NAME_LEN) return -1;
-	strncpy(address_book -> name, name, sizeof(&name));
-	return 0;
-}
+	char *name);
 
 int address_book_surname_set (Address_book_t *address_book,
-	char *surname) 
-{
-	if (strlen(surname)>=SURNAME_LEN) return -1;
-	strncpy(address_book -> surname, surname, sizeof(&surname));
-	return 0;
-}
+	char *surname);
 
-int address_book_phone_set (Address_book_t *address_book, long phone) 
-{
-	//if (check(&phone)) return -1;
-	address_book -> phone=phone;
-	return 0;
-}
+int address_book_phone_set (Address_book_t *address_book, long phone);
 
-int address_book_get (Address_book_t *address_book) {
-	printf("Name: %s Surname: %s Phone: %ld\n", address_book -> name, address_book -> surname, address_book -> phone);
-	return 0;
-}
+int address_book_get (Address_book_t *address_book);
 
-int menu () {
-	printf("1. Добавление абонента\n2. Поиск абонента\n3. Список абонентов\n4. Удалить абонента\n5. Выйти из программы\n");
-	return 0;
-}
+int menu ();
 
 int action_list(Address_book_t *address_book, 
-	int n) {
-	for(int i=0; i<n; i++)
-	{
-	    {
-	    	address_book_get(&address_book[i]);
-		}
-	}
-	printf("\n");
-	return 0;
-}
+	int n);
 
-int clear_scanf() 
-{
-	char c_for_clear;
-	do 
-	{
-		c_for_clear = getchar();
-	} while (c_for_clear != EOF && c_for_clear != '\n');
-	printf("буфер очищен\n");
-	return 0;
-}
+int clear_scanf();
+
+int get_test_addressbook(Address_book_t *address_book);
 
 // int action_add(Address_book_t *address_book, 
 // 	int n)

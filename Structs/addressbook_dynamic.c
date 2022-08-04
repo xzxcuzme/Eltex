@@ -5,35 +5,18 @@
 #include <string.h>
 #include "AddressBookRecord.h"
 
-// int get_test_addressbook(address_book**)
-// {
-
-// }
-
 int main(void)
 {
 	int n=3;
 	Address_book_t *address_book;
-
+	
 	address_book = calloc(n, sizeof(Address_book_t));
 
 	if (address_book == NULL) {
 		perror("Out of memory!\n");
 		exit(EXIT_FAILURE);
 	}
-
-	strncpy(address_book[0].name, "igor", NAME_LEN);
-	strncpy(address_book[0].surname, "prikh", SURNAME_LEN);
-	address_book[0].phone = 12488;
-
-	strncpy(address_book[1].name, "efim", NAME_LEN);
-	strncpy(address_book[1].surname, "glaz", SURNAME_LEN);
-	address_book[1].phone = 24772;
-
-	strncpy(address_book[2].name, "igor", NAME_LEN);
-	strncpy(address_book[2].surname, "korygin", SURNAME_LEN);
-	address_book[2].phone = 20301;
-
+	get_test_addressbook(address_book); 
 	while (1)
 		{
 			unsigned int x;
@@ -46,22 +29,7 @@ int main(void)
 				ACTION_EXIT,
 				ACTION_COUNT
 			};
-				// do 
-				// {
-				// 	c_for_clear = getchar();
-				// } while (c_for_clear != EOF && c_for_clear != '\n');
-			
 			menu();
-				// if (scanf("%hd%*c", &x)!=1)
-				// {
-				// 	do {
-				// 		printf("Ошибка ввода, попробуй еще раз\n");
-				// 		scanf("%*[^\n]");
-				// 		menu();
-				// 		scanf("%hd%*c", &x);
-				// 	}
-				// 	while (x==1);
-				// }
 			scanf("%u", &x);
 			if(x > ACTION_FIRST && x < ACTION_COUNT)
 			{
