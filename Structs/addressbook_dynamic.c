@@ -9,7 +9,7 @@ int main(void)
 {
 	int n=3;
 	Address_book_t *address_book;
-	
+
 	address_book = calloc(n, sizeof(Address_book_t));
 
 	if (address_book == NULL) {
@@ -31,6 +31,8 @@ int main(void)
 			};
 			menu();
 			scanf("%u", &x);
+
+			//x=scan_int();
 			if(x > ACTION_FIRST && x < ACTION_COUNT)
 			{
 				switch (x)

@@ -93,27 +93,11 @@ int get_test_addressbook(Address_book_t *address_book) {
 
 }
 
-// int action_add(Address_book_t *address_book, 
-// 	int n)
-// {
-
-// 	char name[NAME_LEN], surname[SURNAME_LEN];
-// 	long phone;
-
-// 	printf("Введите имя:\n");
-// 	fgets(name, sizeof(name), stdin);
-// 	address_book_name_set(&address_book[n-1], name);
-// 	printf("Введите фамилию:\n");
-// 	fgets(surname, sizeof(surname), stdin);
-// 	address_book_surname_set(&address_book[n-1], surname);
-// 	printf("Введите телефон:\n");
-// 	//scanf("%ld", &phone);
-// 	address_book_phone_set(&address_book[n-1], phone);
-// 	printf("Добавлена запись\n");
-// 	address_book_get(&address_book[n-1]);
-// 	return 0;
-// }
-
-// int actrion_search(Address_book_t *address_book) {
-
-// }
+int scan_int() {
+	int x;
+	while (scanf("%u", &x)==0);
+	{
+	printf("Попробуй еще разок\n");
+	} 
+	return x;
+}
