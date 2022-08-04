@@ -31,7 +31,7 @@ int main(void)
 			};
 			menu();
 			xx=scanf("%u", &x);
-			if(x > ACTION_FIRST && x < ACTION_COUNT && xx==1)
+			if(x > ACTION_FIRST && x < ACTION_COUNT && xx==1 && xx!='\n' && xx!=EOF)
 			{
 				
 				switch (x)
