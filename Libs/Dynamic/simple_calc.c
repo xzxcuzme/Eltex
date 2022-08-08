@@ -1,5 +1,9 @@
 #include <stdio.h>
-#include "calc.h"
+#include "sum.h"
+#include "diff.h"
+#include "inc.h"
+#include "div.h"
+
 
 int main()
 {
