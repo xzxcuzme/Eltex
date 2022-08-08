@@ -139,6 +139,7 @@ int main(void)
 									}
 									printf("Удалено \n");
 									n--;
+									address_book = realloc (address_book, (sizeof(Address_book_t)*n));
 								}
 							}
 						}
