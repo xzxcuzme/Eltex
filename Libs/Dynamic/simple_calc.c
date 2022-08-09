@@ -2,94 +2,111 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 
-#include "diff.h"
-#include "inc.h"
-#include "divn.h"
-
 int main()
 {
+	enum math {
+		MATH_SUM=1,
+		MATH_DIFF,
+		MATH_INC,
+		MATH_DIV,
+		MATH_EXIT
+	};
+	void *handle;
+	short x;
+	char *error;
+	int a, b, (*sum_func)(int a, int b), (*diff_func)(int a, int b), 
+	(*inc_func)(int a, int b), (*divn_func)(int a, int b);
+
+	handle = dlopen("./libmycalc.so", RTLD_LAZY);
+	if (!handle) 
+	{
+		fprintf(stderr, "%s\n", dlerror());
+		exit(EXIT_FAILURE);
+	}
+	dlerror();
+	error = dlerror();
+	if (error != NULL) {
+	   fprintf(stderr, "%s\n", error);
+	   exit(EXIT_FAILURE);
+	}
 	while (1) 
 	{
-		enum math {
-			MATH_SUM=1,
-			MATH_DIFF,
-			MATH_INC,
-			MATH_DIV,
-			MATH_EXIT
-		};
-		void *handle;
-		short x;
-		int a, b;
-		char *error;
-		int (*powerfunc)(int a, int b);
-
 		printf("1. Сложить\n2. Вычесть\n3. Умножить\n4. Разделить\n5. Выход\n");
 		scanf("%hd%*c", &x);
-
-		handle = dlopen("./libmycalc.so", RTLD_LAZY);
-		if (!handle) 
-		{
-			fprintf(stderr, "%s\n", dlerror());
-			exit(EXIT_FAILURE);
-		}
-		dlerror();
-		error = dlerror();
-		if (error != NULL) {
-		   fprintf(stderr, "%s\n", error);
-		   exit(EXIT_FAILURE);
-		}
-
 		switch(x)
 		{
 			case MATH_SUM:
 			{
-				powerfunc = dlsym(handle, "sum");
-				void (*f)() = dlsym(handle, "sum");
-				if (f) {
+				sum_func = dlsym(handle, "sum");
+				void (*sum_f)() = dlsym(handle, "sum");
+				if (sum_f) {
 					printf("Первое слагаемое\n");
 					scanf("%d%*c", &a);
 
 					printf("Второе слагаемое\n");
 					scanf("%d%*c", &b);
-					printf("Сумма: %d\n", (*powerfunc)(a,b));
+					printf("Сумма: %d\n", (*sum_func)(a,b));
 				} else {
 				  printf("dlsym for f1 failed: %s\n", dlerror());
 				}
 				break;
 			}
 			case MATH_DIFF:
-				powerfunc = dlsym(handle, "diff");
-				printf("Первое слагаемое\n");
-				scanf("%d%*c", &a);
+			{
+				diff_func = dlsym(handle, "diff");
+				void (*diff_f)() = dlsym(handle, "diff");
+				if (diff_f) {
+					printf("Первое слагаемое\n");
+					scanf("%d%*c", &a);
 
-				printf("Второе слагаемое\n");
-				scanf("%d%*c", &b);
-				printf("Разность: %d\n", diff(a, b));
+					printf("Второе слагаемое\n");
+					scanf("%d%*c", &b);
+					printf("Разность: %d\n", (*diff_func)(a,b));
+				} else {
+				  printf("dlsym for f1 failed: %s\n", dlerror());
+				}
 				break;
+			}
 			case MATH_INC:
-				printf("Первое слагаемое\n");
-				scanf("%d%*c", &a);
+			{
+				inc_func = dlsym(handle, "inc");
+				void (*inc_f)() = dlsym(handle, "inc");
+				if (inc_f) {
+					printf("Первое слагаемое\n");
+					scanf("%d%*c", &a);
 
-				printf("Второе слагаемое\n");
-				scanf("%d%*c", &b);
-				printf("Произведение: %d\n", inc(a, b));
+					printf("Второе слагаемое\n");
+					scanf("%d%*c", &b);
+					printf("Произведение: %d\n", (*inc_func)(a,b));
+				} else {
+				  printf("dlsym for f1 failed: %s\n", dlerror());
+				}
 				break;
+			}
 			case MATH_DIV:
-				printf("Первое слагаемое\n");
-				scanf("%d%*c", &a);
+			{
+				divn_func = dlsym(handle, "divn");
+				void (*inc_f)() = dlsym(handle, "divn");
+				if (inc_f) {
+					printf("Первое слагаемое\n");
+					scanf("%d%*c", &a);
 
-				printf("Второе слагаемое\n");
-				scanf("%d%*c", &b);
-				printf("Частное: %d\n", divn(a, b));
+					printf("Второе слагаемое\n");
+					scanf("%d%*c", &b);
+					printf("Частное: %d\n", (*divn_func)(a,b));
+				} else {
+				  printf("dlsym for f1 failed: %s\n", dlerror());
+				}
 				break;
+			}
 			case MATH_EXIT:
 				return 0;
 			default: 
 				break;
 		}
 
-		dlclose(handle);
-		exit(EXIT_SUCCESS);	
 	}
+	dlclose(handle);
+	exit(EXIT_SUCCESS);	
 	return 0;
 }
