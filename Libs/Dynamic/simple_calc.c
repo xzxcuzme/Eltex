@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <dlfcn.h>
 #include <stdlib.h>
-#include "sum.h"
+
 #include "diff.h"
 #include "inc.h"
 #include "divn.h"
@@ -21,8 +21,8 @@ int main()
 		short x;
 		int a, b;
 		char *error;
-		double (*powerfunc)(double x);
-		fflush(stdin);
+		int (*powerfunc)(int a, int b);
+
 		printf("1. Сложить\n2. Вычесть\n3. Умножить\n4. Разделить\n5. Выход\n");
 		scanf("%hd%*c", &x);
 
@@ -43,15 +43,18 @@ int main()
 		{
 			case MATH_SUM:
 			{
-				
 				powerfunc = dlsym(handle, "sum");
-				printf("Первое слагаемое\n");
-				scanf("%d%*c", &a);
+				void (*f)() = dlsym(handle, "sum");
+				if (f) {
+					printf("Первое слагаемое\n");
+					scanf("%d%*c", &a);
 
-				printf("Второе слагаемое\n");
-				scanf("%d%*c", &b);
-				printf("Сумма: %d\n", sum(a, b));
-
+					printf("Второе слагаемое\n");
+					scanf("%d%*c", &b);
+					printf("Сумма: %d\n", (*powerfunc)(a,b));
+				} else {
+				  printf("dlsym for f1 failed: %s\n", dlerror());
+				}
 				break;
 			}
 			case MATH_DIFF:
