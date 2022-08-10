@@ -17,18 +17,6 @@ int main()
 	int a, b, (*sum_func)(int a, int b), (*diff_func)(int a, int b), 
 	(*inc_func)(int a, int b), (*divn_func)(int a, int b);
 
-	handle = dlopen("./libmycalc.so", RTLD_LAZY);
-	if (!handle) 
-	{
-		fprintf(stderr, "%s\n", dlerror());
-		exit(EXIT_FAILURE);
-	}
-	dlerror();
-	error = dlerror();
-	if (error != NULL) {
-	   fprintf(stderr, "%s\n", error);
-	   exit(EXIT_FAILURE);
-	}
 	while (1) 
 	{
 		printf("1. Сложить\n2. Вычесть\n3. Умножить\n4. Разделить\n5. Выход\n");
@@ -37,9 +25,22 @@ int main()
 		{
 			case MATH_SUM:
 			{
+				handle = dlopen("./libsum.so", RTLD_LAZY);
+				if (!handle) 
+				{
+					fprintf(stderr, "%s\n", dlerror());
+					exit(EXIT_FAILURE);
+				}
+				dlerror();
+				error = dlerror();
+				if (error != NULL) {
+				   fprintf(stderr, "%s\n", error);
+				   exit(EXIT_FAILURE);
+				}
+
 				sum_func = dlsym(handle, "sum");
-				void (*sum_f)() = dlsym(handle, "sum");
-				if (sum_f) {
+				
+				if (sum_func) {
 					printf("Первое слагаемое\n");
 					scanf("%d%*c", &a);
 
@@ -53,9 +54,22 @@ int main()
 			}
 			case MATH_DIFF:
 			{
+				handle = dlopen("./libdiff.so", RTLD_LAZY);
+				if (!handle) 
+				{
+					fprintf(stderr, "%s\n", dlerror());
+					exit(EXIT_FAILURE);
+				}
+				dlerror();
+				error = dlerror();
+				if (error != NULL) {
+				   fprintf(stderr, "%s\n", error);
+				   exit(EXIT_FAILURE);
+				}
+
 				diff_func = dlsym(handle, "diff");
-				void (*diff_f)() = dlsym(handle, "diff");
-				if (diff_f) {
+
+				if (diff_func) {
 					printf("Первое слагаемое\n");
 					scanf("%d%*c", &a);
 
@@ -69,12 +83,25 @@ int main()
 			}
 			case MATH_INC:
 			{
+				handle = dlopen("./libinc.so", RTLD_LAZY);
+				if (!handle) 
+				{
+					fprintf(stderr, "%s\n", dlerror());
+					exit(EXIT_FAILURE);
+				}
+				dlerror();
+				error = dlerror();
+				if (error != NULL) {
+				   fprintf(stderr, "%s\n", error);
+				   exit(EXIT_FAILURE);
+				}
+
 				inc_func = dlsym(handle, "inc");
-				void (*inc_f)() = dlsym(handle, "inc");
-				if (inc_f) {
+
+				if (inc_func) {
 					printf("Первое слагаемое\n");
 					scanf("%d%*c", &a);
-
+					
 					printf("Второе слагаемое\n");
 					scanf("%d%*c", &b);
 					printf("Произведение: %d\n", (*inc_func)(a,b));
@@ -85,9 +112,22 @@ int main()
 			}
 			case MATH_DIV:
 			{
+				handle = dlopen("./libdivn.so", RTLD_LAZY);
+				if (!handle) 
+				{
+					fprintf(stderr, "%s\n", dlerror());
+					exit(EXIT_FAILURE);
+				}
+				dlerror();
+				error = dlerror();
+				if (error != NULL) {
+				   fprintf(stderr, "%s\n", error);
+				   exit(EXIT_FAILURE);
+				}
+
 				divn_func = dlsym(handle, "divn");
-				void (*inc_f)() = dlsym(handle, "divn");
-				if (inc_f) {
+
+				if (divn_func ) {
 					printf("Первое слагаемое\n");
 					scanf("%d%*c", &a);
 
