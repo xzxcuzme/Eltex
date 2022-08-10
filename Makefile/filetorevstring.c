@@ -4,19 +4,26 @@
 int main()
 {
 	char input[256];
+
 	FILE *file;
 
 	file = fopen("./newfile.txt", "r");
 
-	if (file) fgets(input, 256, file);
-	else printf("error");
+	if (file == NULL) printf ("error\n");
 
-	fseek(file, strlen(input), SEEK_SET);
-	printf("%ld\n", strlen(input));
+	if (file) fgets(input, sizeof(input), file);
+	else printf("error\n");
 
-	fgets(input, sizeof(input), file);
- 
-	printf("%s\n", input);
-	
+	for (int i = strlen(input)-1; i >= 0; --i)
+	{
+		fseek(file, i, SEEK_SET);
+		fgets(input, sizeof(char)+1, file);
+		printf("%s", input);
+	}
+
+	printf("\n");
+
+	if (fclose (file) == EOF) printf("error\n");
+
 	return 0;
 }
