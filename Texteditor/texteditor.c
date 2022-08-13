@@ -6,7 +6,8 @@
 #include <string.h>
 #include <ncurses.h>
 
-#define MAX_NAME_LEN 15
+#define MAX_COL_LEN 35
+#define MAX_ROW_LEN 65
 
 void sig_winch(int signo)
 {
@@ -21,53 +22,54 @@ void sig_winch(int signo)
 int main()
 {
 	WINDOW * wnd;
-	char name[MAX_NAME_LEN + 1];
-	while(1) 
-	{
-	
+	FILE *fd;
+	char name[MAX_ROW_LEN];
 	initscr();
 	signal(SIGWINCH, sig_winch);
 	curs_set(TRUE);
 	start_color();
 	refresh();
 	init_pair(1, COLOR_YELLOW, COLOR_BLUE);
-
-	wnd = newwin(35, 65, 2, 2);
+	wnd = newwin(MAX_COL_LEN, MAX_ROW_LEN, 2, 2);
+	box(wnd, '|', '-');
 	wbkgd(wnd, COLOR_PAIR(1));
-
-	keypad(wnd, TRUE); //KEY_F1-KEY_F12, клавиши со стрелками – коды KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, а клавиша [BackSpace] – код KEY_BACKSPACE
-	
-	
-	mousemask(BUTTON1_CLICKED, NULL);
-	move(0,0);
-	refresh();
-	while (wgetch(wnd) == KEY_MOUSE) 
+	while(1) 
 	{
-		MEVENT event;
-		getmouse(&event);
-		move(0, 0);
-		printw("Mouse button pressed at %i, %i\n", event.x, event.y);
-		refresh();
-		move(event.y, event.x);
-	}
-
-	wattron(wnd, A_BOLD);
-	//wprintw(wnd, "Enter your name...\n");
-	wgetnstr(wnd, name, MAX_NAME_LEN);
-	//name[MAX_NAME_LEN] = 0;
+		keypad(wnd, TRUE); //KEY_F1-KEY_F12, клавиши со стрелками – коды KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, а клавиша [BackSpace] – код KEY_BACKSPACE
+		
+		// mousemask(BUTTON1_CLICKED, NULL);
+		// wmove(wnd, 1, 1);
+		// refresh();
+		// while (wgetch(wnd) == KEY_MOUSE) 
+		// {
+		// 	MEVENT event;
+		// 	getmouse(&event);
+		// 	wmove(wnd, 1, 1);
+		// 	wprintw(wnd, "Mouse button pressed at %i, %i\n", event.x-3, event.y-3);
+		// 	refresh();
+		// 	wmove(wnd, event.y-2, event.x-2);
+		// }
+		//for (int i = 1; i < MAX_COL_LEN-1; ++i)
+		//{
+			
+		
+			wmove(wnd, 1, 1);
+			wgetnstr(wnd, name, MAX_ROW_LEN-2);
+     	//}
+         fd = fopen("./newfile.txt", "w");
+         for (int l = 1; l < MAX_ROW_LEN; l++) {
+           for (int i = 0; i < MAX_COL_LEN; i++)
+           putc (mvinch (l, i) & A_CHARTEXT, fd);
+           putc('\n', fd);
+         }
+         fclose(fd);
 
 	delwin(wnd);
 	curs_set(FALSE);
-	//move(8, 4);
-	//printw("Press any key to continue...");
 	refresh();
 	getch();
-	
-	
-
 	endwin();
-	
-	}
 	exit(EXIT_SUCCESS);
+	}
 } 
 
