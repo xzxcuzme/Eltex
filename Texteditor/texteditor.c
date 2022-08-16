@@ -5,11 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-
-
-
-#define MAX_COL_LEN 35
-#define MAX_ROW_LEN 100
+#include "tefuncs.h"
 
 void sig_winch(int signo)
 {
@@ -23,22 +19,18 @@ void sig_winch(int signo)
 
 int main()
 {
-	WINDOW * wnd;
-	FILE *file;
 	enum GET {
 		GET_OPEN=1,
 		GET_CLOSE,
-		GET_WRITE,
+		GET_SAVE,
 		GET_LEFT,
 		GET_RIGHT,
 		GET_EXIT
 	};
-		// char name[MAX_ROW_LEN];
-		// extern void perror(), exit();
-		// int i, n, l;
-		// int c;
-		// int line = 0;
+	// extern void perror(), exit();
 
+	WINDOW *wnd=NULL;
+	FILE *file=NULL;
 	initscr();
 	signal(SIGWINCH, sig_winch);
 	curs_set(0);
@@ -65,80 +57,83 @@ int main()
 
 	while(1) 
 	{
-		switch(3)
+		file = fopen("./file_output.txt_tmp", "w");
+		char input[MAX_ROW_LEN];
+		curs_set(TRUE);
+		int ch;
+		uint8_t flags;
+
+		for (int i = 1; i < MAX_COL_LEN-1; ++i)
 		{
-			case GET_OPEN:
+			for (int j = 1; j < MAX_COL_LEN-1; ++j)
 			{
-				char input[MAX_ROW_LEN];
-				char *estr;
-				int i = 1;
-
-				file = fopen("./newfile.txt", "r");
-			 	if (file == NULL) wprintw(wnd, "error\n");
-			 	
-			 	while(1) 
-			 	{
-			 		wmove(wnd, i, 1);
-			 		estr = fgets(input, sizeof(input), file);
-			 		nodelay(wnd, TRUE);
-					if (estr == NULL)
-					{
-						if (feof(file) != 0)
-						{  
-							//wprintw(wnd, "\nЧтение файла закончено\n");
-							break;
-						}
-						else
-						{
-							//wprintw(wnd, "\nОшибка чтения из файла\n");
-							break;
-						}
-					}
-			 		waddstr(wnd, estr);
-			 		wgetnstr(wnd, estr, sizeof(estr));
-			 		++i;
-				 }
-
-				if (fclose(file) == EOF) wprintw(wnd, "error\n");
-				//else wprintw(wnd, "close\n");
-			}
-
-			case 2:
-			{
-
-			}
-
-			case GET_WRITE:
-			{
-				file = fopen("./newfile1.txt", "w");
-				char input[MAX_ROW_LEN];
-				curs_set(TRUE);
-				int y = 1;
-				for (int i = 1; i < MAX_COL_LEN-1; ++i)
+				flags = 0;
+				
+				wmove(wnd, i, j);
+				//dectobit(wnd, flags);
+				ch = wgetch(wnd);
+				fputc(ch, file);
+				switch(ch)
 				{
-					
-					wmove(wnd, i, y);
-					wgetnstr(wnd, input, MAX_ROW_LEN-2);
-					if (y>=2) y=1;
-					fputs (input, file);
-					fputc('\n', file);
-					wmove(wnd, i+1, 1);
-					if (wgetch(wnd) == KEY_F(1)) 
+					case GET_OPEN:
 					{
-						if (fclose(file) == EOF) wprintw(wnd, "error\n");
-						//nodelay(wnd, TRUE); 
+						get_open(wnd, file);
+					}
+
+					case '\n':
+					{
+						flags |= (1 << 0);
 						break;
-					} else 
-					{
-						y=y+2;
-						fputc(wgetch(wnd), file);
 					}
 					
-		     	}
-			}
+					case KEY_F(1):
+					{
+						flags |= (1 << 1);
+						break;
+					}
 
+					case KEY_LEFT:
+					{	
+						getyx(wnd, i, j);
+						if(j > 0) 
+						{
+							wrefresh(wnd);
+							wmove(wnd, i, j--);
+							j--;
+							continue;
+						} else flash ();
+					}
+
+					case KEY_BACKSPACE:
+					{
+						getyx(wnd, i, j);
+						if(j > 0) 
+						{
+							mvwaddch(wnd, i, j, ' '); //winsch (wnd, ch)
+							wrefresh(wnd);
+							wmove(wnd, i, j);
+							j--;
+							continue;
+						} else flash ();
+					}
+
+					default:
+					{
+						
+					}
+				}
+				if (flags & (1 << 0)) break;
+				if (flags & (1 << 1))
+				{
+					if(1) rename("file_output.txt_tmp", "file_output.txt");
+						else remove("file_output.txt_tmp");
+					break;
+				}
+			}
+			if (flags & (1 << 1)) break;
 		}
-     	break;
+		if (fclose(file) == EOF) wprintw(wnd, "error\n");
+		break;
 	}
 
  	delwin(wnd);
