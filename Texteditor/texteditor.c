@@ -28,20 +28,22 @@ int main()
 		GET_EXIT
 	};
 	// extern void perror(), exit();
-
-	WINDOW *wnd=NULL;
-	FILE *file=NULL;
 	initscr();
+
 	signal(SIGWINCH, sig_winch);
 	curs_set(0);
 	start_color();
+	move(0, 0);
+	printw("F1 - save and exit");
 	refresh();
 	init_pair(1, COLOR_YELLOW, COLOR_BLUE);
+	WINDOW *wnd=NULL;
+	FILE *file=NULL;
 	wnd = newwin(MAX_COL_LEN, MAX_ROW_LEN, 2, 2);
 	box(wnd, '|', '-');
 	wbkgd(wnd, COLOR_PAIR(1));
 	keypad(wnd, TRUE); //KEY_F1-KEY_F12, клавиши со стрелками – коды KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, а клавиша [BackSpace] – код KEY_BACKSPACE
-	
+
 	// mousemask(BUTTON1_CLICKED, NULL);
 	// wmove(wnd, 1, 1);
 	// refresh();
@@ -65,10 +67,11 @@ int main()
 
 		for (int i = 1; i < MAX_COL_LEN-1; ++i)
 		{
-			for (int j = 1; j < MAX_COL_LEN-1; ++j)
+			for (int j = 1; j < MAX_ROW_LEN-1; ++j)
 			{
 				flags = 0;
-				
+				//wmove(wnd, 10, 1);
+				//wprintw(wnd, "Mouse button pressed at %i, %i\n", i, j);
 				wmove(wnd, i, j);
 				//dectobit(wnd, flags);
 				ch = wgetch(wnd);
@@ -95,13 +98,59 @@ int main()
 					case KEY_LEFT:
 					{	
 						getyx(wnd, i, j);
+						
 						if(j > 0) 
 						{
 							wrefresh(wnd);
 							wmove(wnd, i, j--);
-							j--;
+							if(j == 0);
+								else j--;
 							continue;
 						} else flash ();
+					}
+
+					case KEY_RIGHT:
+					{	
+						getyx(wnd, i, j);
+						if(j == MAX_ROW_LEN-2) wmove(wnd, i, j--);
+						if(j > 0) 
+						{
+							wrefresh(wnd);
+							wmove(wnd, i, j);
+							continue;
+						} else flash ();
+					}
+
+					case KEY_UP:
+					{	
+						getyx(wnd, i, j);
+						if(i > 0) 
+						{
+							wrefresh(wnd);
+							wmove(wnd, i, j--);
+							if(i == 1);
+								else i--;
+							continue;
+						} else flash ();
+					}
+
+					case KEY_DOWN:
+					{	
+						getyx(wnd, i, j);
+						if(i == MAX_COL_LEN-2) wmove(wnd, i--, j);
+						if(i > 0) 
+						{
+							wrefresh(wnd);
+							wmove(wnd, i, j--);
+							
+							i++;
+							continue;
+						} else flash ();
+					}
+
+					case KEY_DL:
+					{	
+						
 					}
 
 					case KEY_BACKSPACE:
@@ -109,12 +158,14 @@ int main()
 						getyx(wnd, i, j);
 						if(j > 0) 
 						{
-							mvwaddch(wnd, i, j, ' '); //winsch (wnd, ch)
+							wdelch(wnd);
+							mvwinsch (wnd, i, MAX_COL_LEN-1, ' ');
+							//waddch(wnd, ' '); //
 							wrefresh(wnd);
 							wmove(wnd, i, j);
 							j--;
 							continue;
-						} else flash ();
+						} 
 					}
 
 					default:

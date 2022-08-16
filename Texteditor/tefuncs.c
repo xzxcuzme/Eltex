@@ -58,7 +58,7 @@ int save_file(WINDOW *wnd, FILE *file)
 	
 	for (int i = 1; i < MAX_COL_LEN-1; ++i)
 	{
-		for (int j = 1; j < MAX_COL_LEN-1; ++j)
+		for (int j = 1; j < MAX_ROW_LEN-1; ++j)
 		{
 			wmove(wnd, i, j);
 			ch = wgetch(wnd);
