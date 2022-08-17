@@ -16,3 +16,7 @@ int get_open(WINDOW *wnd, FILE *file);
 int save_file(WINDOW *wnd, FILE *file);
 
 int dectobit(WINDOW *wnd, int flags);
+
+int editor(WINDOW *wnd, FILE *file);
+
+int menu();
