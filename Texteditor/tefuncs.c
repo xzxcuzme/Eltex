@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-#include <fcntl.h>
 
 #define MAX_COL_LEN 35
 #define MAX_ROW_LEN 100
+#define LINE_FEED '\n'
 
-#define HERE_I_AM() wprintw(wnd, "LINE %d\n", __LINE__)
+#define HERE_I_AM() wprintw(wnd, "LINE %d\n", __LINE__) //строчка для отладки
 
 FILE *create_f()
 {
@@ -33,7 +33,7 @@ FILE *create_f()
     //file = fopen(name, "w");
     inputfile=fopen(name, "w+");//создаём файл
     /*В случае ошибке при создании файла выводим на экран сообщении и возвращаемся в главное меню*/
-    if (inputfile==NULL) {
+    if(inputfile==NULL) {
         wmove(w_name,2,1);
         wprintw(w_name,"Problem with file creating. Press any key");
         wrefresh(w_name);
@@ -65,17 +65,13 @@ FILE *open_f()
     //file = fopen(name, "w");
     inputfile=fopen(name, "r+");//создаём файл
     /*В случае ошибке при создании файла выводим на экран сообщении и возвращаемся в главное меню*/
-    if (inputfile == NULL) {
+    if(inputfile == NULL) {
         wmove(w_name,2,1);
         wprintw(w_name,"Problem with file opening. Press any key");
         wrefresh(w_name);
-
         wgetch(w_name);
-
         wattroff(w_name,A_BOLD);
         delwin(w_name);
-
-
     }
     return inputfile;
 }
@@ -89,31 +85,31 @@ int editor(WINDOW *wnd, FILE *file) {
 	char estr[MAX_COL_LEN];
 	char input[MAX_ROW_LEN];
 	//file = fopen("./file_input.txt", "r+");
-	if (!file)
+	if(!file)
 	{
 		wprintw(wnd, "FILE OPEN ERROR %p\n", file);
 	}
-	int i = 1;
+	int read_string = 1;
 	int read = 0;
 	size_t len = 0;
 	char *line = NULL;
-	while ((read = getline(&line, &len, file)) != -1) 
+	while ((read = getline(&line, &len, file)) != -1) //читаем файл по строчно
  	{
- 		wmove(wnd, i, 1);
+ 		wmove(wnd, read_string, 1);
  		nodelay(wnd, TRUE);
  		waddstr(wnd, line);
 		wgetnstr(wnd, line, len);
- 		if (!read)
+ 		if(!read)
  		{	
  			wprintw(wnd, "END OF FILE\n");
 			waddstr(wnd, "END OF FILE\n");
 			wgetnstr(wnd, "END OF FILE\n", MAX_COL_LEN);
  			break;
  		}
-		i++;
+		read_string++;
 	} 
 
-	for (int i = 1; i < MAX_COL_LEN-1; ++i)
+	for (int i = 1; i < MAX_COL_LEN-1; ++i) //обрабатываем нажатия пользователя, ограничиваясь размерами окна
 	{
 		for (int j = 1; j < MAX_ROW_LEN-1; ++j)
 		{
@@ -134,16 +130,16 @@ int editor(WINDOW *wnd, FILE *file) {
 			ch = wgetch(wnd);
 			switch(ch)
 			{
-				case '\n':
+				case LINE_FEED:
 				{
-					flags |= (1 << 0);
+					flags |= (1 << 0); //флаг для обработки конца строки
 					break;
 				}
 				
 				case KEY_F(1):
 				{
 					nodelay(wnd, TRUE);
-					flags |= (1 << 1);
+					flags |= (1 << 1); //
 					break;
 				}
 
@@ -154,10 +150,14 @@ int editor(WINDOW *wnd, FILE *file) {
 					{
 						wrefresh(wnd);
 						wmove(wnd, i, j--);
-						if(j == 0);
-							else j--;
+						if(j == 0); //что бы не зайти за границу рамки
+						else j--;
 						continue;
-					} else flash();
+					} 
+					else 
+					{
+						flash();
+					} 
 				}
 
 				case KEY_RIGHT:
@@ -169,7 +169,11 @@ int editor(WINDOW *wnd, FILE *file) {
 						wrefresh(wnd);
 						wmove(wnd, i, j);
 						continue;
-					} else flash ();
+					} 
+					else
+					{
+						flash ();
+					} 
 				}
 
 				case KEY_UP:
@@ -179,10 +183,14 @@ int editor(WINDOW *wnd, FILE *file) {
 					{
 						wrefresh(wnd);
 						wmove(wnd, i, j--);
-						if(i == 1);
-							else i--;
+						if(i == 1); //что бы не зайти за границу рамки
+						else i--;
 						continue;
-					} else flash ();
+					} 
+					else
+					{
+						flash ();
+					} 
 				}
 
 				case KEY_DOWN:
@@ -195,7 +203,11 @@ int editor(WINDOW *wnd, FILE *file) {
 						wmove(wnd, i, j--);
 						i++;
 						continue;
-					} else flash ();
+					} 
+					else
+					{
+						flash ();
+					} 
 				}
 
 				case KEY_DL:
@@ -228,20 +240,24 @@ int editor(WINDOW *wnd, FILE *file) {
 					continue;
 				}
 			}
-			if (flags & (1 << 0))
+			if(flags & (1 << 0))
 			{
 				fputc(ch, file);
 				break;
 			} 
-			if (flags & (1 << 1))
+			if(flags & (1 << 1))
 			{	
-				//if(1) rename("file_output.txt_tmp", "file_output.txt");
+				//if(1) rename("file_output.txt_tmp", "file_output.txt"); 
 					//else remove("file_output.txt_tmp");
-				if (fclose(file) == EOF) wprintw(wnd, "error\n");
+				/*
+				Хотел сделать временный файл, если пользователь сохраняет файл, 
+				переименовываем в его имя. Если	не сохранять, то делитем tmp.
+				Не могу получить имя из file.
+				*/
+				if(fclose(file) == EOF) wprintw(wnd, "error\n");
 				break;
-
 			}
 		}
-		if (flags & (1 << 1)) break;
+		if(flags & (1 << 1)) break;
 	}
 }
