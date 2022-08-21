@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
+//#ifndef "tefuncs.h" как оборачивать ен совсем понял
 #include "tefuncs.h"
+//#endif //"tefuncs.h"
 
 void sig_winch(int signo)
 {
