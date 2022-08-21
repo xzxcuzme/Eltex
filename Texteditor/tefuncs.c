@@ -5,69 +5,133 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-
+#include <fcntl.h>
 
 #define MAX_COL_LEN 35
 #define MAX_ROW_LEN 100
-#define ESC 27
 
-int get_open(WINDOW *wnd, FILE *file)
+#define HERE_I_AM() wprintw(wnd, "LINE %d\n", __LINE__)
+
+FILE *create_f()
 {
-	curs_set(TRUE);
-	char input[MAX_ROW_LEN];
-	char *estr;
-	int i = 1;
-
-	file = fopen("./file_input.txt", "r");
- 	if (file == NULL) wprintw(wnd, "error\n");
- 	
- 	while(1) 
- 	{
- 		wmove(wnd, i, 1);
- 		estr = fgets(input, sizeof(input), file);
- 		nodelay(wnd, TRUE);
-		if (estr == NULL) break;
- 		waddstr(wnd, estr);
- 		wgetnstr(wnd, estr, sizeof(estr));
- 		++i;
-	 }
-
-	if (fclose(file) == EOF) wprintw(wnd, "error\n");
-	//else wprintw(wnd, "close\n");
-
+    WINDOW *w_name;
+    FILE *inputfile=NULL;
+    int x,y;
+    x=getmaxx(stdscr);
+    y=getmaxy(stdscr);
+    char name[x];
+    w_name=newwin(5,60,(y/2-2),(x/2-30));//создаём новое окно по середине активного окна
+    curs_set(TRUE);//включаем курсор
+    echo();//выводить набираемые символы
+    box(w_name,0,0);//создаём рамку по границе окна
+    wmove(w_name,1,1);
+    wattron(w_name,A_BOLD);
+    wprintw(w_name, "Enter path end name:");//приглашение к вводу данных
+    wmove(w_name,2,1);
+    wgetnstr(w_name, name, y);//получение строки с путём к файлу и его именем.Максимальная длина-размер окна
+    wrefresh(w_name);//обновляем для вывода на экран
+    //file = fopen(name, "w");
+    inputfile=fopen(name, "w+");//создаём файл
+    /*В случае ошибке при создании файла выводим на экран сообщении и возвращаемся в главное меню*/
+    if (inputfile==NULL) {
+        wmove(w_name,2,1);
+        wprintw(w_name,"Problem with file creating. Press any key");
+        wrefresh(w_name);
+        wgetch(w_name);
+        wattroff(w_name,A_BOLD);
+        delwin(w_name);
+    }
+    return inputfile;
 }
 
-int save_file(WINDOW *wnd, FILE *file)
+FILE *open_f()
 {
-	if(1) rename("file_output.txt_tmp", "file_output.txt");
-		else remove("file_output.txt_tmp");		
-	if (fclose(file) == EOF) wprintw(wnd, "error\n");
-	return 1;
-}
+    WINDOW *w_name;
+    FILE *inputfile=NULL;
+    int x,y;
+    x=getmaxx(stdscr);
+    y=getmaxy(stdscr);
+    char name[x];
+    w_name=newwin(5,60,(y/2-2),(x/2-30));//создаём новое окно по середине активного окна
+    curs_set(TRUE);//включаем курсор
+    echo();//выводить набираемые символы
+    box(w_name,0,0);//создаём рамку по границе окна
+    wmove(w_name,1,1);
+    wattron(w_name,A_BOLD);
+    wprintw(w_name, "Enter path end name:");//приглашение к вводу данных
+    wmove(w_name,2,1);
+    wgetnstr(w_name, name, y);//получение строки с путём к файлу и его именем.Максимальная длина-размер окна
+    wrefresh(w_name);//обновляем для вывода на экран
+    //file = fopen(name, "w");
+    inputfile=fopen(name, "r+");//создаём файл
+    /*В случае ошибке при создании файла выводим на экран сообщении и возвращаемся в главное меню*/
+    if (inputfile == NULL) {
+        wmove(w_name,2,1);
+        wprintw(w_name,"Problem with file opening. Press any key");
+        wrefresh(w_name);
 
-int dectobit(WINDOW *wnd, int flags) {
-	for (int i = 0; i < 16; i++) 
-		{
-			wprintw(wnd, "%c", (flags & 0x80) ? '1' : '0');
-			flags <<= 1;
-		}
-	return 1;
+        wgetch(w_name);
+
+        wattroff(w_name,A_BOLD);
+        delwin(w_name);
+
+
+    }
+    return inputfile;
 }
 
 int editor(WINDOW *wnd, FILE *file) {
-	file = fopen("./file_output.txt_tmp", "w");
+	//mousemask(BUTTON1_CLICKED, NULL);
 	curs_set(TRUE);
-	int ch;
 	uint8_t flags;
+	int x;
+	char name[x];
+	char estr[MAX_COL_LEN];
+	char input[MAX_ROW_LEN];
+	//file = fopen("./file_input.txt", "r+");
+	if (!file)
+	{
+		wprintw(wnd, "FILE OPEN ERROR %p\n", file);
+	}
+	int i = 1;
+	int read = 0;
+	size_t len = 0;
+	char *line = NULL;
+	while ((read = getline(&line, &len, file)) != -1) 
+ 	{
+ 		wmove(wnd, i, 1);
+ 		nodelay(wnd, TRUE);
+ 		waddstr(wnd, line);
+		wgetnstr(wnd, line, len);
+ 		if (!read)
+ 		{	
+ 			wprintw(wnd, "END OF FILE\n");
+			waddstr(wnd, "END OF FILE\n");
+			wgetnstr(wnd, "END OF FILE\n", MAX_COL_LEN);
+ 			break;
+ 		}
+		i++;
+	} 
+
 	for (int i = 1; i < MAX_COL_LEN-1; ++i)
 	{
 		for (int j = 1; j < MAX_ROW_LEN-1; ++j)
 		{
+	
 			flags = 0;
 			wmove(wnd, i, j);
-			//dectobit(wnd, flags);
+			// while (wgetch(wnd) == KEY_MOUSE) 
+			// {
+			// 	MEVENT event;
+			// 	getmouse(&event);
+			// 	i=event.y-2;
+			// 	j=event.x-2;
+			// 	//wmove(wnd, event.y-2, event.x-2);
+			// }
+			
+			nodelay(wnd, FALSE);
+			int ch = 0;
 			ch = wgetch(wnd);
-			fputc(ch, file);
 			switch(ch)
 			{
 				case '\n':
@@ -78,6 +142,7 @@ int editor(WINDOW *wnd, FILE *file) {
 				
 				case KEY_F(1):
 				{
+					nodelay(wnd, TRUE);
 					flags |= (1 << 1);
 					break;
 				}
@@ -85,7 +150,6 @@ int editor(WINDOW *wnd, FILE *file) {
 				case KEY_LEFT:
 				{	
 					getyx(wnd, i, j);
-					
 					if(j > 0) 
 					{
 						wrefresh(wnd);
@@ -93,7 +157,7 @@ int editor(WINDOW *wnd, FILE *file) {
 						if(j == 0);
 							else j--;
 						continue;
-					} else flash ();
+					} else flash();
 				}
 
 				case KEY_RIGHT:
@@ -129,7 +193,6 @@ int editor(WINDOW *wnd, FILE *file) {
 					{
 						wrefresh(wnd);
 						wmove(wnd, i, j--);
-						
 						i++;
 						continue;
 					} else flash ();
@@ -137,7 +200,8 @@ int editor(WINDOW *wnd, FILE *file) {
 
 				case KEY_DL:
 				{	
-					
+					delch();
+					break;
 				}
 
 				case KEY_BACKSPACE:
@@ -154,57 +218,30 @@ int editor(WINDOW *wnd, FILE *file) {
 						continue;
 					} 
 				}
-
+				case -1:
+				{	
+					break;
+				}
 				default:
 				{
-					
+					fputc(ch, file); //wechochar()
+					continue;
 				}
 			}
-			if (flags & (1 << 0)) break;
-			if (flags & (1 << 1))
+			if (flags & (1 << 0))
 			{
-				save_file(wnd, file);
+				fputc(ch, file);
 				break;
+			} 
+			if (flags & (1 << 1))
+			{	
+				//if(1) rename("file_output.txt_tmp", "file_output.txt");
+					//else remove("file_output.txt_tmp");
+				if (fclose(file) == EOF) wprintw(wnd, "error\n");
+				break;
+
 			}
 		}
 		if (flags & (1 << 1)) break;
 	}
 }
-
-int menu() {
-	const char items[3][10] = {
-	    "New file", 
-	    "Open file",
-	    "Exit"
-	};
-    initscr();
-
-    unsigned choice = 0;
-
-    curs_set(0); 
-    keypad(stdscr, true); 
-}
-//     while (1)
-//     {
-//         clear();
-//         for (unsigned i = 0; i < sizeof(items)/sizeof(items[i]); i++) 
-//         {
-//             if (i == choice) addch('>'); 
-//             	else addch(' '); 
-//             printw("%s\n", items[i]);
-//         }
-//         switch (getch())
-//         {
-//             case KEY_UP:
-//             {
-//                 if (choice) choice--; 
-//                 break;
-//             }
-//             case KEY_DOWN:
-//                 if (choice != sizeof(items)/sizeof(items[3])-1) choice++;
-//                 break;
-//         }
-//     }
-//     endwin();
-//     return 1;
-// }

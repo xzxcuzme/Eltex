@@ -5,18 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-
+#include <fcntl.h>
 
 #define MAX_COL_LEN 35 //35
 #define MAX_ROW_LEN 100 //100
-#define ESC 27
 
-int get_open(WINDOW *wnd, FILE *file);
+FILE *create_f();
 
-int save_file(WINDOW *wnd, FILE *file);
-
-int dectobit(WINDOW *wnd, int flags);
+FILE *open_f();
 
 int editor(WINDOW *wnd, FILE *file);
-
-int menu();

@@ -14,7 +14,7 @@ void sig_winch(int signo)
 	resizeterm(size.ws_row, size.ws_col);
 	nodelay(stdscr, 1);
 	while (wgetch(stdscr) != ERR);
-	nodelay(stdscr, 0);
+	nodelay(stdscr, 0); 
 }
 
 int main()
@@ -34,37 +34,58 @@ int main()
 	curs_set(0);
 	start_color();
 	move(0, 0);
-	printw("F1 - save and exit");
+	printw("F1 - save and exit  F2 - new file  F3 - open file\n");
+	
 	refresh();
 	init_pair(1, COLOR_YELLOW, COLOR_BLUE);
 	WINDOW *wnd=NULL;
-	FILE *file=NULL;
+	//FILE *file=NULL;
 	wnd = newwin(MAX_COL_LEN, MAX_ROW_LEN, 2, 2);
+	if (!wnd)
+	{
+		printf("wnd error\n");	
+		wprintw(wnd, "wnd error\n");
+	}
 	box(wnd, '|', '-');
 	wbkgd(wnd, COLOR_PAIR(1));
 	keypad(wnd, TRUE); //KEY_F1-KEY_F12, клавиши со стрелками – коды KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, а клавиша [BackSpace] – код KEY_BACKSPACE
+	keypad(stdscr, TRUE);
+	cbreak();
 
-	// mousemask(BUTTON1_CLICKED, NULL);
-	// wmove(wnd, 1, 1);
-	// refresh();
-	// while (wgetch(wnd) == KEY_MOUSE) 
-	// {
-	// 	MEVENT event;
-	// 	getmouse(&event);
-	// 	wmove(wnd, 1, 1);
-	// 	wprintw(wnd, "Mouse button pressed at %i, %i\n", event.x-3, event.y-3);
-	// 	refresh();
-	// 	wmove(wnd, event.y-2, event.x-2);
-	// }	
-	while(1) 
+	idlok(wnd, TRUE);
+
+	int ch = 0;
+	ch = getch();
+	switch(ch)
 	{
+		case KEY_F(2):
+		{
+			FILE *file = create_f();
+			editor(wnd, file);
 
-		get_open(wnd, file);
-		//editor(wnd, file);
+			break;
+		}
+
+		case KEY_F(3):
+		{
+
+			FILE *file = open_f();
+			editor(wnd, file);
+			break;
+		}
+
+		default: {
+			break;
+		}
 
 		break;
 	}
- 	delwin(wnd);
+	
+	
+
+	//if (fclose(file) == EOF) wprintw(wnd, "error\n");
+
+ 	//delwin(wnd);
 	curs_set(FALSE);
 	refresh();
 	getch();
