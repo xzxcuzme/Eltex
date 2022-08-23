@@ -19,6 +19,8 @@ typedef struct shop
 Shop_t my_shop[NUM_SHOPS];
 Shop_t *new_shop = my_shop;
 
+pthread_mutex_t mutex;
+
 int get_shop_num(Shop_t *new_shop) {
 	return new_shop -> number_of_shop;
 }
@@ -49,58 +51,64 @@ void shop_init() {
 }
 
 void *loader(void *arg) {
-	pthread_mutex_lock(&(new_shop->mutex));
+	
 	int index = *(int*)arg;
-
+	
 	for (int i = 1; i <=NUM_SHOPS; ++i)
 	{
+		pthread_mutex_trylock(&(my_shop[i].mutex));
 		new_shop[i].stock=new_shop[i].stock+500;
 		printf("Поток %d добавил 500, в магазине %d стало: %d\n", 
 			index, my_shop[i].number_of_shop, my_shop[i].stock);
 		sleep(1);
+		pthread_mutex_unlock(&(my_shop[i].mutex));
 	}
-	pthread_mutex_unlock(&(new_shop->mutex));
+
 	return NULL;
 }
 
-// void *buyer(void *arg) {
-// 	pthread_mutex_lock(&(new_shop->mutex));
-// 	int index = *(int*)arg;
+void *buyer(void *arg) {
+	
+	int index = *(int*)arg;
 
-// 	for (int i = 1; i < NUM_SHOPS+1; ++i)
-// 	{
-// 		new_shop->stock=new_shop->stock-1000;
-// 		printf("Поток %d удалил 1000, в магазине %d стало: %d\n", 
-// 			get_shop_num(new_shop, 1), index, get_stock(new_shop));
-// 	}
-// 	pthread_mutex_unlock(&(new_shop->mutex));
-// 	return NULL;
-// }
+	for (int i = 1; i < NUM_SHOPS+1; ++i)
+	{
+		pthread_mutex_trylock(&(my_shop[i].mutex));
+		new_shop[i].stock=new_shop[i].stock-1000;
+		printf("Поток %d удалил 1000, в магазине %d стало: %d\n", 
+			index, my_shop[i].number_of_shop, my_shop[i].stock);
+		sleep(1);
+		pthread_mutex_unlock(&(my_shop[i].mutex));
+	}
+	return NULL;
+}
 
 int main(void)
 {
-	pthread_t thread[NUM_SHOPS];	
+	pthread_t thread[3];	
 	size_t i;
 	int index[5];
 
 	shop_init();
+	while(my_shop[5].stock>0) {
+		for (i = 0; i < 1; ++i)
+		{
+			index[i]=i + 1;
+			pthread_create(&thread[i], NULL, loader, (void *) &index[i]);
+		}
 
-	for (i = 0; i < NUM_SHOPS; ++i)
-	{
-		index[i]=i + 1;
-		pthread_create(&thread[i], NULL, loader, (void *) &index[i]);
+		for (i = 0; i < 3; ++i)
+		{
+			index[i]=i + 1;
+			pthread_create(&thread[i], NULL, buyer, (void *) &index[i]);
+		}
+
+		for (i = 0; i < 3; ++i)
+		{
+			pthread_join(thread[i], NULL);
+		}
 	}
 
-	// for (i = 0; i < NUM_SHOPS; ++i)
-	// {
-	// 	index[i]=i + 1;
-	// 	pthread_create(&thread[i], NULL, buyer, (void *) &index[i]);
-	// }
-	for (i = 0; i < NUM_SHOPS; ++i)
-	{
-		pthread_join(thread[i], NULL);
-	}
-
-	pthread_mutex_destroy(&(new_shop->mutex));
+	pthread_mutex_destroy(&(my_shop[i].mutex));
 	return 0;
 }
