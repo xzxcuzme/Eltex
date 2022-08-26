@@ -19,10 +19,8 @@ typedef struct shop
 Shop_t my_shop[NUM_SHOPS];
 Shop_t *new_shop = my_shop;
 
-pthread_mutex_t mutex;
-
 int get_shop_num(Shop_t *new_shop) {
-	return new_shop -> number_of_shop;
+	return new_shop->number_of_shop;
 }
 
 int get_stock(Shop_t *new_shop) {
@@ -56,11 +54,11 @@ void *loader(void *arg) {
 	
 	for (int i = 1; i <=NUM_SHOPS; ++i)
 	{
-		pthread_mutex_trylock(&(my_shop[i].mutex));
+		pthread_mutex_lock(&(my_shop[i].mutex));
 		new_shop[i].stock=new_shop[i].stock+500;
-		printf("Поток %d добавил 500, в магазине %d стало: %d\n", 
-			index, my_shop[i].number_of_shop, my_shop[i].stock);
-		sleep(1);
+		printf("В магазин %d добавлено 500, стало: %d\n", 
+			 my_shop[i].number_of_shop, my_shop[i].stock);
+		sleep(2);
 		pthread_mutex_unlock(&(my_shop[i].mutex));
 	}
 
@@ -73,9 +71,9 @@ void *buyer(void *arg) {
 
 	for (int i = 1; i < NUM_SHOPS+1; ++i)
 	{
-		pthread_mutex_trylock(&(my_shop[i].mutex));
+		pthread_mutex_lock(&(my_shop[i].mutex));
 		new_shop[i].stock=new_shop[i].stock-1000;
-		printf("Поток %d удалил 1000, в магазине %d стало: %d\n", 
+		printf("Покупатель %d купил на 1000, в магазине %d стало: %d\n", 
 			index, my_shop[i].number_of_shop, my_shop[i].stock);
 		sleep(1);
 		pthread_mutex_unlock(&(my_shop[i].mutex));
@@ -85,18 +83,21 @@ void *buyer(void *arg) {
 
 int main(void)
 {
-	pthread_t thread[3];	
+		
 	size_t i;
 	int index[5];
 
 	shop_init();
-	while(my_shop[5].stock>0) {
-		for (i = 0; i < 1; ++i)
-		{
-			index[i]=i + 1;
-			pthread_create(&thread[i], NULL, loader, (void *) &index[i]);
-		}
+	pthread_t lloader;
 
+	for (i = 0; i < 1; ++i)
+	{
+		index[i]=i + 1;
+		pthread_create(&lloader, NULL, loader, (void *) &index[i]);
+	}
+
+	pthread_t thread[3];
+	while(my_shop[1].stock > SHOP_LOADER) {
 		for (i = 0; i < 3; ++i)
 		{
 			index[i]=i + 1;
