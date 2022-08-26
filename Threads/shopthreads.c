@@ -31,12 +31,6 @@ int get_shop_mutex_init(Shop_t *new_shop) {
 	return pthread_mutex_init(&(new_shop->mutex), NULL);
 }
 
-// int get_shop(int number_of_shop) {
-// 	return my_shop[number_of_shop]
-// }
-
-//Shop_t *new_shop=get_shop(number_of_shop);
-
 void shop_init() {
 	for (int i = 1; i <=NUM_SHOPS; ++i)
 	{
@@ -89,15 +83,14 @@ int main(void)
 
 	shop_init();
 	pthread_t lloader;
-
-	for (i = 0; i < 1; ++i)
-	{
-		index[i]=i + 1;
-		pthread_create(&lloader, NULL, loader, (void *) &index[i]);
-	}
-
 	pthread_t thread[3];
 	while(my_shop[1].stock > SHOP_LOADER) {
+		for (i = 0; i < 1; ++i)
+		{
+			index[i]=i + 1;
+			pthread_create(&lloader, NULL, loader, (void *) &index[i]);
+		}
+
 		for (i = 0; i < 3; ++i)
 		{
 			index[i]=i + 1;
@@ -109,7 +102,7 @@ int main(void)
 			pthread_join(thread[i], NULL);
 		}
 	}
-
+	pthread_cancel(lloader);
 	pthread_mutex_destroy(&(my_shop[i].mutex));
 	return 0;
 }
