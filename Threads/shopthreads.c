@@ -46,7 +46,7 @@ void *loader(void *arg) {
 	
 	int index = *(int*)arg;
 	
-	for (int i = 1; i <=NUM_SHOPS; ++i)
+	for (int i = 1; i < NUM_SHOPS+1; ++i)
 	{
 		pthread_mutex_lock(&(my_shop[i].mutex));
 		new_shop[i].stock=new_shop[i].stock+500;
@@ -63,7 +63,7 @@ void *buyer(void *arg) {
 	
 	int index = *(int*)arg;
 
-	for (int i = 1; i < NUM_SHOPS; ++i)
+	for (int i = 1; i < NUM_SHOPS+1; ++i)
 	{
 		pthread_mutex_lock(&(my_shop[i].mutex));
 		new_shop[i].stock=new_shop[i].stock-1000;
