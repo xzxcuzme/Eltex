@@ -1,0 +1,1 @@
+mkdir build && gcc -Werror -Wall mq1.c -o ./build/mq1 -lrt && gcc -Werror -Wall mq2.c -o ./build/mq2 -lrt && ./build/mq1 && rm -R build
