@@ -56,23 +56,26 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	if ((sema_n = sem_open(SEM_NAME, O_CREAT | O_RDWR, 0600, 1)) == SEM_FAILED)
+	if ((sema_n = sem_open(SEM_NAME, O_CREAT | O_RDWR, 0600, 0)) == SEM_FAILED)
 	{
 		perror("sem_open");
 		exit(EXIT_FAILURE);
 	}
-	
+	sem_getvalue(sema_n, &val);
+	printf("semaphore value = %d\n", val);
+
 	sem_trywait(sema_n); //блокирует семафор
 	strncpy(vaddr, text, sizeof(text));
-	printf("Процесс 1 записал в память: %s\n", vaddr);
+	printf("Процесс 1 записал в память: %s\n\n", vaddr);
 	sem_post(sema_n); //разблокирует семафор
 
 	sleep(1);
 
-	sem_trywait(sema_n); //блокирует семафор
-	printf("Процесс 1 считал из памяти: %s\n", vaddr);
 	sem_getvalue(sema_n, &val);
 	printf("semaphore value = %d\n", val);
+
+	sem_trywait(sema_n); //блокирует семафор
+	printf("Процесс 1 считал из памяти: %s\n\n", vaddr);
 	sem_post(sema_n); //разблокирует семафор
 	
 

@@ -20,8 +20,9 @@ int main()
 	char *vaddr;
 	sem_t *sema_n;
 	int val;
-	char text[] = "Hi!";
-
+	char name[SHM_SIZE];
+	char message[SHM_SIZE];
+	char post[SHM_SIZE*2];
 
 	if ((shm_fd = shm_open(MY_SHM, O_CREAT | O_RDWR, 0666)) == -1)
 	{
@@ -52,26 +53,32 @@ int main()
 		perror("sem_open");
 		exit(EXIT_FAILURE);
 	}
-	sem_getvalue(sema_n, &val);
-	printf("semaphore value = %d\n", val);
 
-	sem_trywait(sema_n);
-	printf("Процесс 2 считал из памяти: %s\n\n", vaddr);
-	sem_post(sema_n);
+	
 
-	sem_getvalue(sema_n, &val);
-	printf("semaphore value = %d\n", val);
+	printf("write name:\n");
+	fgets(name, SHM_SIZE, stdin);
+	int len = strlen(name);
+	if (name[len-1] == '\n') name[len-1] = 0;
 
-	sem_trywait(sema_n);
-	strncpy(vaddr, text, sizeof(text));
-	printf("Процесс 2 записал в память: %s\n\n", text);
-	sem_post(sema_n);
+	//sem_getvalue(sema_n, &val);
+	//printf("semaphore value = %d\n", val);
 
-	munmap(vaddr, SHM_SIZE);
+	sem_trywait(sema_n); //блокирует семафор
+	while(1)
+		{
+			printf("write message:\n");
+			fgets(message, SHM_SIZE, stdin);
+			snprintf(vaddr, sizeof(post)+1, "%s: %s", name, message);
+		}
+	sem_post(sema_n); //разблокирует семафор
+
+	munmap(vaddr, SHM_SIZE); //отделяем сегмент общей памяти от адресного пространства
 	sem_close(sema_n);
 	close(shm_fd);
 
 	sem_unlink(SEM_NAME);
 	shm_unlink(MY_SHM);
+
 	exit(EXIT_SUCCESS);
 }
