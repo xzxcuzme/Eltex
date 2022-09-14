@@ -21,10 +21,11 @@ int main()
 	sem_t *sema_n;
 	int val;
 	char text[] = "Hello!";
+
 	pid_t pid = fork();
 	if(pid == 0)
 	{
-		if(execl("./shm2","",NULL) == -1)
+		if(execl("./build/shm2","",NULL) == -1)
 		{
 			perror("exec");
 			exit(EXIT_FAILURE);
@@ -61,24 +62,25 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 	
-	
-	sem_trywait(sema_n);
-
+	sem_trywait(sema_n); //блокирует семафор
 	strncpy(vaddr, text, sizeof(text));
-	printf("Процесс 1 записал в память: %s\n", text);
-	sleep(10);
+	printf("Процесс 1 записал в память: %s\n", vaddr);
+	sem_post(sema_n); //разблокирует семафор
+
+	sleep(1);
+
+	sem_trywait(sema_n); //блокирует семафор
 	printf("Процесс 1 считал из памяти: %s\n", vaddr);
 	sem_getvalue(sema_n, &val);
 	printf("semaphore value = %d\n", val);
-
-	sem_post(sema_n);
+	sem_post(sema_n); //разблокирует семафор
 	
 
-	munmap(vaddr, SHM_SIZE);
-
+	munmap(vaddr, SHM_SIZE); //отделяем сегмент общей памяти от адресного пространства
 	sem_close(sema_n);
-	sem_unlink(SEM_NAME);
 	close(shm_fd);
+
+	sem_unlink(SEM_NAME);
 	shm_unlink(MY_SHM);
 
 	exit(EXIT_SUCCESS);

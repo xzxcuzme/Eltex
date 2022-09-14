@@ -20,7 +20,7 @@ int main()
 	char *vaddr;
 	sem_t *sema_n;
 	int val;
-	char text[] = "Hi!";
+	int i = 0;
 
 
 	if ((shm_fd = shm_open(MY_SHM, O_CREAT | O_RDWR, 0666)) == -1)
@@ -47,31 +47,33 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	if ((sema_n = sem_open(SEM_NAME, O_CREAT | O_RDWR, 0600, 0)) == SEM_FAILED)
+	if ((sema_n = sem_open(SEM_NAME, O_CREAT | O_RDWR, 0600, 3)) == SEM_FAILED)
 	{
 		perror("sem_open");
 		exit(EXIT_FAILURE);
 	}
-	sem_getvalue(sema_n, &val);
-	printf("semaphore value = %d\n", val);
-	sem_trywait(sema_n);
 
-	printf("Процесс 2 считал из памяти: %s\n", vaddr);
+while(1) {
+	if (sem_getvalue(sema_n, &val) > i)
+	{
+	i++;
+
+	
+	sem_trywait(sema_n);
+	
+	printf("semaphore value = %d\n", val);
+	printf("shm:%d %s\n", val, vaddr);
 
 	sem_post(sema_n);
 
-	sem_trywait(sema_n);
-	strncpy(vaddr, text, sizeof(text));
-	printf("Процесс 2 записал в память: %s\n", text);
-	sem_getvalue(sema_n, &val);
-	printf("semaphore value = %d\n", val);
-	sem_post(sema_n);
+	}
+}
 
 	munmap(vaddr, SHM_SIZE);
 	sem_close(sema_n);
-	close(shm_fd);
-
 	sem_unlink(SEM_NAME);
+	close(shm_fd);
 	shm_unlink(MY_SHM);
+
 	exit(EXIT_SUCCESS);
 }
