@@ -8,14 +8,19 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <semaphore.h>
 
 #define SHM_SIZE 1024
 #define MY_SHM "my_shm"
+#define SEM_NAME "/mysem"
 
 int main()
 {
 	int shm_fd;
 	char *vaddr;
+	sem_t *sema_n;
+	int val;
+	char text[] = "Hello!";
 
 	if ((shm_fd = shm_open(MY_SHM, O_CREAT | O_RDWR, 0666)) == -1)
 	{
@@ -35,17 +40,35 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	strcpy(vaddr,"Hello!");
-
 	if (mlock(vaddr, SHM_SIZE) != 0)
 	{
 		perror("cannot mlock");
 		exit(EXIT_FAILURE);
 	}
 
-	munmap(vaddr, SHM_SIZE);
-	close(shm_fd);
-	//shm_unlink(MY_SHM);
+	if ((sema_n = sem_open(SEM_NAME, O_CREAT | O_RDWR, 0600, 1)) == SEM_FAILED)
+	{
+		perror("sem_open");
+		exit(EXIT_FAILURE);
+	}
 	
+	
+	sem_trywait(sema_n);
+	sem_getvalue(sema_n, &val);
+	printf("semaphore value = %d\n", val);
+	strncpy(vaddr, text, sizeof(text));
+	sleep(10);
+	printf("shm1: %s\n", vaddr);
+
+	sem_post(sema_n);
+	
+
+	munmap(vaddr, SHM_SIZE);
+
+	sem_close(sema_n);
+	sem_unlink(SEM_NAME);
+	close(shm_fd);
+	shm_unlink(MY_SHM);
+
 	exit(EXIT_SUCCESS);
 }
