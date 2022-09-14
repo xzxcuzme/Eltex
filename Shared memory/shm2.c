@@ -55,15 +55,14 @@ int main()
 
 	sem_trywait(sema_n);
 
+	sleep(5);
+	printf("Процесс 2 считал из памяти: %s\n", vaddr);
+	strncpy(vaddr, text, sizeof(text));
+	printf("Процесс 2 записал в память: %s\n", text);
 	sem_getvalue(sema_n, &val);
 	printf("semaphore value = %d\n", val);
-	sleep(5);
-	printf("shm2: %s\n", vaddr);
-	strncpy(vaddr, text, sizeof(text));
-	
-	sem_post(sema_n);
 
-	
+	sem_post(sema_n);
 
 	munmap(vaddr, SHM_SIZE);
 

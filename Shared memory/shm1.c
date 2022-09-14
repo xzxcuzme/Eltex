@@ -21,6 +21,15 @@ int main()
 	sem_t *sema_n;
 	int val;
 	char text[] = "Hello!";
+	pid_t pid = fork();
+	if(pid == 0)
+	{
+		if(execl("./shm2","",NULL) == -1)
+		{
+			perror("exec");
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	if ((shm_fd = shm_open(MY_SHM, O_CREAT | O_RDWR, 0666)) == -1)
 	{
@@ -54,11 +63,13 @@ int main()
 	
 	
 	sem_trywait(sema_n);
+
+	strncpy(vaddr, text, sizeof(text));
+	printf("Процесс 1 записал в память: %s\n", text);
+	sleep(10);
+	printf("Процесс 1 считал из памяти: %s\n", vaddr);
 	sem_getvalue(sema_n, &val);
 	printf("semaphore value = %d\n", val);
-	strncpy(vaddr, text, sizeof(text));
-	sleep(10);
-	printf("shm1: %s\n", vaddr);
 
 	sem_post(sema_n);
 	
