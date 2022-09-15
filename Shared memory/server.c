@@ -11,7 +11,7 @@
 #include <semaphore.h>
 
 #define SHM_SIZE 1024
-#define MY_SHM "my_shm"
+#define MY_SHM "/my_shm"
 #define SEM_NAME "/mysem"
 
 int main()
@@ -19,8 +19,6 @@ int main()
 	int shm_fd;
 	char *vaddr;
 	sem_t *sema_n;
-	int val;
-
 
 	if ((shm_fd = shm_open(MY_SHM, O_CREAT | O_RDWR, 0666)) == -1)
 	{
@@ -54,13 +52,11 @@ int main()
 
 	while(1) 
 	{
+		sem_wait(sema_n);
 		//if (getc(stdin) == 27) break;
-		sem_trywait(sema_n); //блокирует семафор
 		printf("%s", vaddr);
-		sleep(1);
-		sem_post(sema_n); //разблокирует семафор
 	}
-
+	
 	munmap(vaddr, SHM_SIZE); //отделяем сегмент общей памяти от адресного пространства
 	sem_close(sema_n);
 	close(shm_fd);

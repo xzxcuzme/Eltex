@@ -11,7 +11,7 @@
 #include <semaphore.h>
 
 #define SHM_SIZE 1024
-#define MY_SHM "my_shm"
+#define MY_SHM "/my_shm"
 #define SEM_NAME "/mysem"
 
 int main()
@@ -19,7 +19,7 @@ int main()
 	int shm_fd;
 	char *vaddr;
 	sem_t *sema_n;
-	int val;
+
 	char name[SHM_SIZE];
 	char message[SHM_SIZE];
 	char post[SHM_SIZE*2];
@@ -54,24 +54,28 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	
-
 	printf("write name:\n");
 	fgets(name, SHM_SIZE, stdin);
 	int len = strlen(name);
 	if (name[len-1] == '\n') name[len-1] = 0;
-
-	//sem_getvalue(sema_n, &val);
-	//printf("semaphore value = %d\n", val);
-
-	sem_trywait(sema_n); //блокирует семафор
+	
 	while(1)
+	{
+		if (mlock(vaddr, SHM_SIZE) != 0)
 		{
-			printf("write message:\n");
-			fgets(message, SHM_SIZE, stdin);
-			snprintf(vaddr, sizeof(post)+1, "%s: %s", name, message);
+			perror("cannot mlock");
+			exit(EXIT_FAILURE);
 		}
-	sem_post(sema_n); //разблокирует семафор
+		printf("write message:\n");
+		fgets(message, SHM_SIZE, stdin);
+		snprintf(vaddr, sizeof(post)+1, "%s: %s", name, message);
+		if (munlock(vaddr, SHM_SIZE) != 0)
+		{
+			perror("cannot munlock");
+			exit(EXIT_FAILURE);
+		}
+		sem_post(sema_n); //++
+	}
 
 	munmap(vaddr, SHM_SIZE); //отделяем сегмент общей памяти от адресного пространства
 	sem_close(sema_n);

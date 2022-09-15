@@ -11,8 +11,9 @@
 #include <semaphore.h>
 
 #define SHM_SIZE 1024
-#define MY_SHM "my_shm"
+#define MY_SHM "/my_shm"
 #define SEM_NAME "/mysem"
+#define FORK_PATH "./build/shm2"
 
 int main()
 {
@@ -23,15 +24,15 @@ int main()
 	char text[] = "Hello!";
 
 	pid_t pid = fork();
-	if(pid == 0)
+	if (pid == 0)
 	{
-		if(execl("./build/shm2","",NULL) == -1)
+		if (execl(FORK_PATH,"",NULL) == -1)
 		{
 			perror("exec");
 			exit(EXIT_FAILURE);
 		}
 	}
-
+	printf("Процесс 1 запустился\n");
 	if ((shm_fd = shm_open(MY_SHM, O_CREAT | O_RDWR, 0666)) == -1)
 	{
 		perror("cannot open");
@@ -50,36 +51,40 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	if (mlock(vaddr, SHM_SIZE) != 0)
-	{
-		perror("cannot mlock");
-		exit(EXIT_FAILURE);
-	}
-
 	if ((sema_n = sem_open(SEM_NAME, O_CREAT | O_RDWR, 0600, 0)) == SEM_FAILED)
 	{
 		perror("sem_open");
 		exit(EXIT_FAILURE);
 	}
-	sem_getvalue(sema_n, &val);
-	printf("semaphore value = %d\n", val);
+	printf("Процесс 1 открыл sema_n\n");
 
-	sem_trywait(sema_n); //блокирует семафор
-	strncpy(vaddr, text, sizeof(text));
-	printf("Процесс 1 записал в память: %s\n\n", vaddr);
-	sem_post(sema_n); //разблокирует семафор
-
-	sleep(1);
-
-	sem_getvalue(sema_n, &val);
-	printf("semaphore value = %d\n", val);
-
-	sem_trywait(sema_n); //блокирует семафор
-	printf("Процесс 1 считал из памяти: %s\n\n", vaddr);
-	sem_post(sema_n); //разблокирует семафор
+	//sem_getvalue(sema_n, &val);
+	//printf("Процесс 1 semaphore value = %d\n", val);
 	
+	//sem_wait(sema_n); //--
+		//printf("Процесс 1 сделал первый пост\n");
+		// if (mlock(vaddr, SHM_SIZE) != 0)
+		// {
+		// 	perror("cannot mlock");
+		// 	exit(EXIT_FAILURE);
+		// }
+		strncpy(vaddr, text, sizeof(text));
+		printf("Процесс 1 записал в память: %s\n", vaddr);
+	printf("Процесс 1 жду процесс 2\n\n");
+	//sem_post(sema_n); //++
 
+	sem_wait(sema_n); //--                          
+
+		printf("Процесс 1 считал из памяти: %s\n\n", vaddr);
+		// if (munlock(vaddr, SHM_SIZE) != 0)
+		// {
+		// 	perror("cannot munlock");
+		// 	exit(EXIT_FAILURE);
+		// }
+	sem_post(sema_n); //++
+	
 	munmap(vaddr, SHM_SIZE); //отделяем сегмент общей памяти от адресного пространства
+	
 	sem_close(sema_n);
 	close(shm_fd);
 
