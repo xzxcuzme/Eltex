@@ -19,10 +19,7 @@ int main()
 	int shm_fd;
 	char *vaddr;
 	sem_t *sema_n;
-	int val;
-	char text[] = "Hi!";
 
-	printf("Процесс 2 запустился\n");
 	if ((shm_fd = shm_open(MY_SHM, O_CREAT | O_RDWR, 0666)) == -1)
 	{
 		perror("cannot open");
@@ -41,43 +38,31 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
+	if (mlock(vaddr, SHM_SIZE) != 0)
+	{
+		perror("cannot mlock");
+		exit(EXIT_FAILURE);
+	}
+
 	if ((sema_n = sem_open(SEM_NAME, O_CREAT | O_RDWR, 0600, 0)) == SEM_FAILED)
 	{
 		perror("sem_open");
 		exit(EXIT_FAILURE);
 	}
-	printf("Процесс 2 открыл sema_n\n");
 
-	sem_post(sema_n);
-
-		printf("Процесс 2 сделал первый пост\n");
-
-	sem_wait(sema_n);
-		// if (mlock(vaddr, SHM_SIZE) != 0)
-		// {
-		// 	perror("cannot mlock");
-		// 	exit(EXIT_FAILURE);
-		// }
-		printf("Процесс 2 считал из памяти: %s\n", vaddr);
-
-	sem_post(sema_n);
-
-	sem_wait(sema_n);
-		
-		strncpy(vaddr, text, sizeof(text));
-		printf("Процесс 2 записал в память: %s\n\n", vaddr);
-		// if (munlock(vaddr, SHM_SIZE) != 0)
-		// {
-		// 	perror("cannot munlock");
-		// 	exit(EXIT_FAILURE);
-		// }
-	sem_post(sema_n);
-
-	munmap(vaddr, SHM_SIZE);
+	while(1) 
+	{
+		sem_wait(sema_n);
+		//if (getc(stdin) == 27) break;
+		printf("%s", vaddr);
+	}
+	
+	munmap(vaddr, SHM_SIZE); //отделяем сегмент общей памяти от адресного пространства
 	sem_close(sema_n);
 	close(shm_fd);
 
 	sem_unlink(SEM_NAME);
 	shm_unlink(MY_SHM);
+	
 	exit(EXIT_SUCCESS);
 }
