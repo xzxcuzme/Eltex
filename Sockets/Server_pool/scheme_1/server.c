@@ -7,11 +7,16 @@
 #include <unistd.h>
 #include <netinet/in.h>
 
-#define PORT 9002
+#define PORT 9006
 
 int main()
 {
-	char str[10] = "hello";
+	pid_t name=getpid();
+	char *pid = (char*)&name;
+    int32_t newport;
+
+    char str[10]="server";
+
 	struct sockaddr_in serv;
 	struct sockaddr_in client;
 	serv.sin_family = AF_INET;
@@ -33,29 +38,37 @@ int main()
 		perror("bind error");
 		exit(EXIT_FAILURE);
 	}
-	void *ptr;
-	*ptr = int newport;
-	newport = PORT;
-	newport++;
 
-	if (sendto(fd, newport, sizeof(newport), 0, (struct sockaddr *) &client, cl_size) == -1)
+	if (recvfrom(fd, pid, sizeof(pid), 0, (struct sockaddr *) &client, &cl_size) == -1)
 	{
-		perror("sendto error");
+		perror("recvfrom error");
 		exit(EXIT_FAILURE);	
 	}
 
-	printf("Отправил клиенту номер порта: %d\n", newport);
+	printf("Клиент %d подсоеденился\n", *(pid_t*)pid);
 
-	pid_t pid = fork();
+    newport = PORT;
+    newport++;
+    char *data = (char*)&newport;
 
-	if (pid == -1) {
+	if (sendto(fd, data, sizeof(data), 0, (struct sockaddr *) &client, cl_size) == -1)
+	{
+		perror("sendto from lister server error");
+		exit(EXIT_FAILURE);	
+	}
+
+	printf("Отправил клиенту номер порта: %d\n", *(int*)data);
+
+	pid_t ppid = fork();
+
+	if (ppid == -1) {
         perror("Fork error");
         exit(EXIT_FAILURE);
     }
 
-    if (pid == 0) 
+    if (ppid == 0) 
 	{	
-		serv.sin_port = htons(PORT);
+		serv.sin_port = htons(newport);
 
 		int new_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -73,7 +86,7 @@ int main()
 
 		printf("Получил от клиента: %s\n", str);
 
-		strcpy(str,"Hello");
+		strcpy(str,"server");
 
 		if (sendto(new_fd, "Hello", sizeof(str), 0, (struct sockaddr *) &client, cl_size) == -1)
 		{
