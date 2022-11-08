@@ -13,7 +13,7 @@
 
 void* server(void *arg) {
 	int newport = *(int*)arg;
-	char str[10];
+	char str[100];
 	printf("я в потоке с портом %d\n", newport);
 
 	struct sockaddr_in serv_2;
@@ -33,22 +33,25 @@ void* server(void *arg) {
 		perror("socket create error");
 		exit(EXIT_FAILURE);
 	}
+	
 	printf("бинд\n");
 	if (bind(new_fd, (struct sockaddr *) &serv_2, sizeof(serv_2)) == -1) 
 	{
 		perror("bind error");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	printf("ресив\n");
-	if (recvfrom(new_fd, str, sizeof(str), 0, (struct sockaddr *) &client_2, &cl_2_size) == -1)
+	while(1) 
 	{
-		perror("recvfrom error");
-		exit(EXIT_FAILURE);	
+		if (recvfrom(new_fd, str, sizeof(str), 0, (struct sockaddr *) &client_2, &cl_2_size) == -1)
+		{
+			perror("recvfrom error");
+			exit(EXIT_FAILURE);	
+		}
+		printf("Получил от клиента %s\n", str);
 	}
-	printf("Получил от клиента %s\n", str);
 	close(new_fd);
-	exit(EXIT_SUCCESS);
 }
 
 int main()
@@ -70,55 +73,59 @@ int main()
     serv.sin_port = htons(PORT);
 
     socklen_t cl_size = sizeof(client);
-//while(1) {
-	int fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-	if (fd == -1) 
+    
+	while(1) 
 	{
-		perror("socket create error");
-		exit(EXIT_FAILURE);
-	}
+		int fd = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if (bind(fd, (struct sockaddr *) &serv, sizeof(serv)) == -1) 
-	{
-		perror("bind error");
-		exit(EXIT_FAILURE);
-	}
+		if (fd == -1) 
+		{
+			perror("socket create error");
+			exit(EXIT_FAILURE);
+		}
 
-	if (recvfrom(fd, pid, sizeof(pid), 0, (struct sockaddr *) &client, &cl_size) == -1)
-	{
-		perror("recvfrom error");
-		exit(EXIT_FAILURE);	
-	}
+		if (bind(fd, (struct sockaddr *) &serv, sizeof(serv)) == -1) 
+		{
+			perror("bind error");
+			exit(EXIT_FAILURE);
+		}
 
-	printf("Клиент %d подсоеденился\n", *(pid_t*)pid);
 
-    newport = PORT;
-    newport++;
-    char *data = (char*)&newport;
+		if (recvfrom(fd, pid, sizeof(pid), 0, (struct sockaddr *) &client, &cl_size) == -1)
+		{
+			perror("recvfrom error");
+			exit(EXIT_FAILURE);	
+		}
 
-	if (sendto(fd, data, sizeof(data), 0, (struct sockaddr *) &client, cl_size) == -1)
-	{
-		perror("sendto from lister server error");
-		exit(EXIT_FAILURE);	
-	}
+		printf("Клиент %d подсоеденился\n", *(pid_t*)pid);
 
-	printf("Отправил клиенту номер порта: %d\n", *(int*)data);
-	close(fd);
-	status = pthread_create(&thread, NULL, server, &newport);
-	if (status != 0) {
-		perror("pthread_create error");
-		exit(EXIT_FAILURE);
-	}
+		newport = rand();
+		newport++;
+		char *data = (char*)&newport;
 
-    status = pthread_join(thread, (void**)&status_addr);
-	if (status != 0) {
-		perror("pthread_join error");
-		exit(EXIT_FAILURE);
-	}
+		if (sendto(fd, data, sizeof(data), 0, (struct sockaddr *) &client, cl_size) == -1)
+		{
+			perror("sendto from lister server error");
+			exit(EXIT_FAILURE);	
+		}
 
+		printf("Отправил клиенту номер порта: %d\n", *(int*)data);
+		
+		status = pthread_create(&thread, NULL, server, &newport);
+		if (status != 0) {
+			perror("pthread_create error");
+			exit(EXIT_FAILURE);
+		}
+
+	   
 	
-	//}
+		close(fd);
+	}
+	// status = pthread_join(thread, (void**)&status_addr);
+	// if (status != 0) {
+	// 	perror("pthread_join error");
+	// 	exit(EXIT_FAILURE);
+	// }
 	exit(EXIT_SUCCESS);
 
 }
