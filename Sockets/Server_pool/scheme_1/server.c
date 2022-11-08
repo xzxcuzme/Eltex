@@ -10,122 +10,127 @@
 #include <arpa/inet.h>
 
 #define PORT 9006
+#define RANDPORT 7000+rand()%2001
+#define NAME_LEN 30
+#define MSG_LEN 100
 
-void* server(void *arg) {
+void* _client(void *arg) 
+{
 	int newport = *(int*)arg;
-	char str[100];
-	printf("я в потоке с портом %d\n", newport);
 
-	struct sockaddr_in serv_2;
-	struct sockaddr_in client_2;
-	serv_2.sin_family = AF_INET;
-    serv_2.sin_addr.s_addr = inet_addr("127.0.0.1"); //INADDR_ANY; //inet_addr("127.0.0.1")
-    serv_2.sin_port = htons(newport);
+	typedef struct msg {
+		char text[MSG_LEN];
+		char nickname[NAME_LEN];
+	} msg;
 
-    socklen_t cl_2_size = sizeof(client_2);
-    printf("порт %d\n", serv_2.sin_port);
-    printf("адрес %d\n", serv_2.sin_addr.s_addr);
-    printf("создаю сокет\n");
-	int new_fd = socket(AF_INET, SOCK_DGRAM, 0);
+	msg message;
 
-	if (new_fd == -1) 
+	struct sockaddr_in serv_cl;
+	struct sockaddr_in client_cl;
+	serv_cl.sin_family = AF_INET;
+	serv_cl.sin_addr.s_addr = inet_addr("127.0.0.1"); //INADDR_ANY; //inet_addr("127.0.0.1")
+	serv_cl.sin_port = htons(newport);
+	socklen_t cl_size = sizeof(client_cl);
+
+	int hndlr_sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+	if (hndlr_sock == -1) 
 	{
 		perror("socket create error");
 		exit(EXIT_FAILURE);
 	}
 	
-	printf("бинд\n");
-	if (bind(new_fd, (struct sockaddr *) &serv_2, sizeof(serv_2)) == -1) 
+	if (bind(hndlr_sock, (struct sockaddr *) &serv_cl, sizeof(serv_cl)) == -1) 
 	{
 		perror("bind error");
 		exit(EXIT_FAILURE);
 	}
 
-	printf("ресив\n");
 	while(1) 
 	{
-		if (recvfrom(new_fd, str, sizeof(str), 0, (struct sockaddr *) &client_2, &cl_2_size) == -1)
+		if (recvfrom(hndlr_sock, &message, sizeof(message), 0, (struct sockaddr *) &client_cl, &cl_size) == -1)
 		{
 			perror("recvfrom error");
 			exit(EXIT_FAILURE);	
 		}
-		printf("Получил от клиента %s\n", str);
+
+		if (strncmp(message.text, "/exit", sizeof(6)) == 0)
+		{
+			printf("%s отключился\n", message.nickname);
+			break;
+		}
+
+		printf("%s: ", message.nickname);
+		printf("%s\n", message.text);
 	}
-	close(new_fd);
+	
+	close(hndlr_sock);
+	return 0;
 }
 
-int main()
+int client_hndlr()
 {
 	pthread_t thread;
 	int status;
-	int status_addr;
 
 	pid_t name = getpid();
 	char *pid = (char*)&name;
-    int32_t newport;
-
-    char str[10]="server";
+	int32_t newport;
+	newport = PORT;
 
 	struct sockaddr_in serv;
 	struct sockaddr_in client;
 	serv.sin_family = AF_INET;
-    serv.sin_addr.s_addr = inet_addr("127.0.0.1"); //inet_addr("127.0.0.1")
-    serv.sin_port = htons(PORT);
+	serv.sin_addr.s_addr = inet_addr("127.0.0.1");
+	serv.sin_port = htons(PORT);
+	socklen_t cl_size = sizeof(client);
 
-    socklen_t cl_size = sizeof(client);
-    
 	while(1) 
 	{
-		int fd = socket(AF_INET, SOCK_DGRAM, 0);
+		int list_sock = socket(AF_INET, SOCK_DGRAM, 0);
 
-		if (fd == -1) 
+		if (list_sock == -1) 
 		{
 			perror("socket create error");
 			exit(EXIT_FAILURE);
 		}
 
-		if (bind(fd, (struct sockaddr *) &serv, sizeof(serv)) == -1) 
+		if (bind(list_sock, (struct sockaddr *) &serv, sizeof(serv)) == -1) 
 		{
 			perror("bind error");
 			exit(EXIT_FAILURE);
 		}
 
-
-		if (recvfrom(fd, pid, sizeof(pid), 0, (struct sockaddr *) &client, &cl_size) == -1)
+		if (recvfrom(list_sock, pid, sizeof(pid), 0, (struct sockaddr *) &client, &cl_size) == -1)
 		{
 			perror("recvfrom error");
 			exit(EXIT_FAILURE);	
 		}
 
-		printf("Клиент %d подсоеденился\n", *(pid_t*)pid);
-
-		newport = rand();
-		newport++;
+		newport = RANDPORT;
 		char *data = (char*)&newport;
 
-		if (sendto(fd, data, sizeof(data), 0, (struct sockaddr *) &client, cl_size) == -1)
+		if (sendto(list_sock, data, sizeof(data), 0, (struct sockaddr *) &client, cl_size) == -1)
 		{
 			perror("sendto from lister server error");
 			exit(EXIT_FAILURE);	
 		}
 
-		printf("Отправил клиенту номер порта: %d\n", *(int*)data);
+		printf("Клиент %d присоеденился c адресом %s:%d\n", *(pid_t*)pid, inet_ntoa(serv.sin_addr), newport);
 		
-		status = pthread_create(&thread, NULL, server, &newport);
-		if (status != 0) {
+		status = pthread_create(&thread, NULL, _client, &newport);
+		if (status != 0) 
+		{
 			perror("pthread_create error");
 			exit(EXIT_FAILURE);
 		}
 
-	   
-	
-		close(fd);
+		close(list_sock);
 	}
-	// status = pthread_join(thread, (void**)&status_addr);
-	// if (status != 0) {
-	// 	perror("pthread_join error");
-	// 	exit(EXIT_FAILURE);
-	// }
-	exit(EXIT_SUCCESS);
+}
 
+int main()
+{
+	client_hndlr();
+	exit(EXIT_SUCCESS);
 }
