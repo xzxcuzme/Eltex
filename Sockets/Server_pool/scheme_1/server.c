@@ -16,12 +16,12 @@
 
 typedef struct sockaddr_in sockaddr;
 
-sockaddr init(short a, uint b, ushort c)
+sockaddr init(short sin_famil, uint sin_addr, ushort sin_port)
 {
 	sockaddr serv;
-	serv.sin_family = a;
-	serv.sin_addr.s_addr = b; 
-	serv.sin_port = c;
+	serv.sin_family = sin_famil;
+	serv.sin_addr.s_addr = sin_addr; 
+	serv.sin_port = sin_port;
 	return serv;
 }
 
@@ -76,7 +76,7 @@ void* _client(void *arg)
 	while(1) 
 	{
 		recv_from(handler_sock, &message, sizeof(message), 0, (struct sockaddr *) &client_cl, &cl_size);
-		
+
 		if (strncmp(message.text, "/exit", sizeof(int)) == 0)
 		{
 			printf("%s disconnected\n", message.nickname);
