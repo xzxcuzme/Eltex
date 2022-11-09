@@ -14,6 +14,51 @@
 #define NAME_LEN 30
 #define MSG_LEN 100
 
+typedef struct sockaddr_in sockaddr;
+
+sockaddr init(short a, uint b, ushort c)
+{
+	sockaddr serv;
+	serv.sin_family = a;
+	serv.sin_addr.s_addr = b; 
+	serv.sin_port = c;
+	return serv;
+}
+
+void term_del(char *arg)
+{
+	int len = strlen(arg);
+	if (arg[len-1] == '\n') arg[len-1] = 0;
+}
+
+void send_msg(char *arg)
+{
+	do
+	{
+		printf("write a message: ");
+		fgets(arg, MSG_LEN, stdin);
+		if (strlen(arg) >= MSG_LEN) printf("message too long, try again\n");
+	} while (strlen(arg) >= MSG_LEN);
+}
+
+void send_to(int s, const void *msg, size_t len, int flags, const struct sockaddr *to, socklen_t tolen)
+{
+	if (sendto(s, msg, len, flags, to, tolen) == -1) 
+	{
+		perror("sendto error");
+		exit(EXIT_FAILURE);
+	}
+}
+
+void recv_from(int s, void *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen)
+{
+	if (recvfrom(s, buf, len, flags, from, fromlen) == -1) 
+	{
+		perror("recvfrom error");
+		exit(EXIT_FAILURE);	
+	}
+}
+
 int _connect() 
 {
 	pid_t ppid = getpid();
@@ -21,11 +66,8 @@ int _connect()
 	char *pid = (char*)&ppid;
 	char *data = (char*)&newport;
 
-	struct sockaddr_in serv_cnct;
-	serv_cnct.sin_family = AF_INET;
-	serv_cnct.sin_addr.s_addr = inet_addr("127.0.0.1"); 
-	serv_cnct.sin_port = htons(PORT);
-	socklen_t serv_cnct_size = sizeof(serv_cnct);
+	sockaddr serv_connect = init(AF_INET, inet_addr("127.0.0.1"), htons(PORT));
+	socklen_t serv_connect_size = sizeof(serv_connect);
 
 	int list_sock = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -35,51 +77,43 @@ int _connect()
 		exit(EXIT_FAILURE);
 	}
 
-	if (sendto(list_sock, pid, sizeof(pid), 0, (struct sockaddr *) &serv_cnct, serv_cnct_size) == -1) 
-	{
-		perror("sendto error");
-		exit(EXIT_FAILURE);
-	}
+	send_to(list_sock, pid, sizeof(pid), 0, (struct sockaddr *) &serv_connect, serv_connect_size);
 
-	if (recvfrom(list_sock, data, sizeof(data), 0, (struct sockaddr *) &serv_cnct, &serv_cnct_size) == -1) 
-	{
-		perror("recvfrom error");
-		exit(EXIT_FAILURE);	
-	}
+	recv_from(list_sock, data, sizeof(newport), 0, (struct sockaddr *) &serv_connect, &serv_connect_size);
 
 	close(list_sock);
-	newport = *(int32_t*)data;
-	return (newport);
+	newport = *((int32_t*)data);
+	return newport;
 }
 
-void _hndlr(int arg) 
+void _handler(int arg) 
 {
 	int newport = arg;
 	typedef struct msg {
 		char text[MSG_LEN];
 		char nickname[NAME_LEN];
 	} msg;
+
 	char text[MSG_LEN];
-	char ext[6] = "/exit";
+	char nickname[NAME_LEN];
+	char ext[] = "/exit";
+
 	msg message;
 	msg *pointermsg;
 	pointermsg = &message;
+
 	printf("name: ");
-	char nickname[NAME_LEN];
+	
 	fgets(nickname, sizeof(nickname), stdin);
 	strncpy(pointermsg -> nickname, nickname, sizeof(&nickname));
-	int len = strlen(nickname);
-	if (message.nickname[len-1] == '\n') message.nickname[len-1] = 0;
+	term_del(message.nickname);
 
-	struct sockaddr_in serv;
+	sockaddr serv = init(AF_INET, inet_addr("127.0.0.1"), htons(newport));
 	socklen_t serv_size = sizeof(serv);
-	serv.sin_family = AF_INET;
-	serv.sin_port = htons(newport);
-	serv.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-	int hndlr_sock = socket(AF_INET, SOCK_DGRAM, 0);
+	int handler_sock = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if (hndlr_sock == -1) 
+	if (handler_sock == -1)
 	{
 		perror("socket create error");
 		exit(EXIT_FAILURE);
@@ -89,42 +123,35 @@ void _hndlr(int arg)
 
 	while(1)
 	{
-		printf("write a message: ");
-		fgets(text, sizeof(text), stdin);
+		send_msg(text);
 
-		if(strncmp(text, ext, sizeof(6)) == 0)
+		if (strncmp(text, ext, sizeof(int)) == 0)
 		{
 			strncpy(pointermsg -> text, "/exit", sizeof(&text));
 
-			if (sendto(hndlr_sock, &message, sizeof(message), 0, (struct sockaddr *) &serv, serv_size) == -1) 
-			{
-				perror("sendto error");
-				exit(EXIT_FAILURE);
-			}
+			send_to(handler_sock, &message, sizeof(message), 0, (struct sockaddr *) &serv, serv_size); 
 
 			printf("exit\n");
 			exit(EXIT_SUCCESS);
 		}
 
 		strncpy(pointermsg -> text, text, sizeof(&text));
-		int len = strlen(text);
-		if (message.text[len-1] == '\n') message.text[len-1] = 0;
-		printf("%s: ", message.nickname);
-		printf("%s\n", message.text);
+		term_del(message.text);
 
-		if (sendto(hndlr_sock, &message, sizeof(message), 0, (struct sockaddr *) &serv, serv_size) == -1) 
+		send_to(handler_sock, &message, sizeof(message), 0, (struct sockaddr *) &serv, serv_size);
+
 		{
-			perror("sendto error");
-			exit(EXIT_FAILURE);
+			printf("%s: ", message.nickname);
+			printf("%s\n", message.text);
 		}
 	}
 
-	close(hndlr_sock);
+	close(handler_sock);
 }
 
 int main()
 {
 	int newport = _connect();
-	_hndlr(newport);
+	_handler(newport);
 	exit(EXIT_SUCCESS);
 }
