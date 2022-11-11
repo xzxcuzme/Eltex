@@ -9,21 +9,7 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-#define PORT 9006
-#define NAME_LEN 30
-#define MSG_LEN 100
-
-typedef struct sockaddr_in sockaddr;
-
-sockaddr init(short sin_famil, uint sin_addr, ushort sin_port)
-{
-	sockaddr serv;
-	serv.sin_family = sin_famil;
-	serv.sin_addr.s_addr = sin_addr; 
-	serv.sin_port = sin_port;
-	return serv;
-}
+#include "socklib.c"
 
 void term_del(char *arg)
 {
@@ -41,24 +27,6 @@ void send_msg(char *arg)
 	} while (strlen(arg) >= MSG_LEN);
 }
 
-void send_to(int s, const void *msg, size_t len, int flags, const struct sockaddr *to, socklen_t tolen)
-{
-	if (sendto(s, msg, len, flags, to, tolen) == -1) 
-	{
-		perror("sendto error");
-		exit(EXIT_FAILURE);
-	}
-}
-
-void recv_from(int s, void *buf, size_t len, int flags, struct sockaddr *from, socklen_t *fromlen)
-{
-	if (recvfrom(s, buf, len, flags, from, fromlen) == -1) 
-	{
-		perror("recvfrom error");
-		exit(EXIT_FAILURE);	
-	}
-}
-
 int _connect() 
 {
 	pid_t ppid = getpid();
@@ -66,7 +34,7 @@ int _connect()
 	char *pid = (char*)&ppid;
 	char *data = (char*)&newport;
 
-	sockaddr serv_connect = init(AF_INET, inet_addr("127.0.0.1"), htons(PORT));
+	sockconfig serv_connect = init(AF_INET, inet_addr("127.0.0.1"), htons(PORT));
 	socklen_t serv_connect_size = sizeof(serv_connect);
 
 	int list_sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -77,9 +45,9 @@ int _connect()
 		exit(EXIT_FAILURE);
 	}
 
-	send_to(list_sock, pid, sizeof(pid), 0, (struct sockaddr *) &serv_connect, serv_connect_size);
-
-	recv_from(list_sock, data, sizeof(newport), 0, (struct sockaddr *) &serv_connect, &serv_connect_size);
+	send_to(list_sock, pid, sizeof(pid), serv_connect);
+	//r3cv_from(list_sock, data, sizeof(data), 0, (struct sockaddr *) &serv_connect, &serv_connect_size);
+	recv_from(list_sock, data, sizeof(data), serv_connect);
 
 	close(list_sock);
 	newport = *((int32_t*)data);
@@ -89,27 +57,22 @@ int _connect()
 void _handler(int arg) 
 {
 	int newport = arg;
-	typedef struct msg {
-		char text[MSG_LEN];
-		char nickname[NAME_LEN];
-	} msg;
 
 	char text[MSG_LEN];
 	char nickname[NAME_LEN];
 	char ext[] = "/exit";
 
-	msg message;
-	msg *pointermsg;
-	pointermsg = &message;
+	datagram message;
+	datagram *pointer_datagram;
+	pointer_datagram = &message;
 
 	printf("name: ");
 	
 	fgets(nickname, sizeof(nickname), stdin);
-	strncpy(pointermsg -> nickname, nickname, sizeof(&nickname));
+	strncpy(pointer_datagram -> nickname, nickname, sizeof(&nickname));
 	term_del(message.nickname);
 
-	sockaddr serv = init(AF_INET, inet_addr("127.0.0.1"), htons(newport));
-	socklen_t serv_size = sizeof(serv);
+	sockconfig serv = init(AF_INET, inet_addr("127.0.0.1"), htons(newport));
 
 	int handler_sock = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -125,20 +88,20 @@ void _handler(int arg)
 	{
 		send_msg(text);
 
-		if (strncmp(text, ext, sizeof(int)) == 0)
+		if (strncmp(text, ext, strlen(ext)) == 0)
 		{
-			strncpy(pointermsg -> text, "/exit", sizeof(&text));
+			strncpy(pointer_datagram -> text, ext, strlen(ext));
 
-			send_to(handler_sock, &message, sizeof(message), 0, (struct sockaddr *) &serv, serv_size); 
+			send_to(handler_sock, &message, sizeof(message), serv); 
 
 			printf("exit\n");
 			exit(EXIT_SUCCESS);
 		}
 
-		strncpy(pointermsg -> text, text, sizeof(&text));
+		strncpy(pointer_datagram -> text, text, sizeof(&text));
 		term_del(message.text);
 
-		send_to(handler_sock, &message, sizeof(message), 0, (struct sockaddr *) &serv, serv_size);
+		send_to(handler_sock, &message, sizeof(message), serv);
 
 		{
 			printf("%s: ", message.nickname);
