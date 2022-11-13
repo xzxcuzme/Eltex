@@ -11,7 +11,7 @@
 
 int main()
 {
-	char str[10] = "hello";
+	char str[10];
 	struct sockaddr_in serv;
 	struct sockaddr_in client;
 	serv.sin_family = AF_INET;
