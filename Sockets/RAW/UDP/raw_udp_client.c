@@ -57,13 +57,13 @@ int main()
 
    	while(1) 
    	{
-		if (recvfrom(fd, buf, sizeof(buf) + sizeof(struct ip), 0, (struct sockaddr *) &serv, &serv_size) == -1) 
+		if (recvfrom(fd, buf, sizeof(buf), 0, (struct sockaddr *) &serv, &serv_size) == -1) 
 		{
 			perror("recvfrom error");
 			exit(EXIT_FAILURE);	
 		}
 
-        printf("Получил от сервера: %s\n", buf);
+        printf("Получил от сервера: %s\n", buf + sizeof(struct ip) + sizeof(struct udphdr));
    	}
 
 	close(fd);
