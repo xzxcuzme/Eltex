@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 
-#define PORT 9006
+#define DEST_PORT 9006
 #define MESSAGE_SIZE 256
 
 int main()
@@ -18,10 +18,10 @@ int main()
 	struct sockaddr_in serv;
 	struct sockaddr_in client;
 	serv.sin_family = AF_INET;
-    serv.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    serv.sin_port = htons(PORT);
+	serv.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	serv.sin_port = htons(DEST_PORT);
 
-    socklen_t cl_size = sizeof(client);
+	socklen_t cl_size = sizeof(client);
 
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -37,7 +37,7 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	if (recvfrom(fd, buf, sizeof(buf), 0, (struct sockaddr *) &client, &cl_size) == -1)
+	if (recvfrom(fd, (char *)buf, sizeof(buf), 0, (struct sockaddr *) &client, &cl_size) == -1)
 	{
 		perror("recvfrom error");
 		exit(EXIT_FAILURE);	
@@ -45,7 +45,7 @@ int main()
 
 	printf("Получил от клиента: %s\n", buf);
 
-	if (sendto(fd, str, sizeof(str), 0, (struct sockaddr *) &client, cl_size) == -1)
+	if (sendto(fd, (char *)str, sizeof(str), 0, (struct sockaddr *) &client, cl_size) == -1)
 	{
 		perror("sendto error");
 		exit(EXIT_FAILURE);	
@@ -54,5 +54,5 @@ int main()
 	printf("Отправил клиенту: %s\n", str);
 
 	close(fd);
-    exit(EXIT_SUCCESS);
+	exit(EXIT_SUCCESS);
 }
