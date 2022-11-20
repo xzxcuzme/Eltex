@@ -16,8 +16,9 @@
 #define MESSAGE_SIZE 256
 
 char* message(char* ip_udp_msg, char* msg, uint32_t version, uint32_t ihl, uint32_t tot_len, uint32_t id, uint32_t frag_off,
- uint32_t ttl, uint32_t protocol, uint32_t check, uint32_t saddr, uint32_t daddr, uint32_t tos, 
+ uint32_t ttl, uint32_t protocol, uint32_t check, uint32_t saddr, uint32_t daddr, uint32_t tos,
  uint32_t source_port, uint32_t dest_port, uint32_t len, uint32_t checksum) {
+	//ip header
 	((struct iphdr*)ip_udp_msg)->version = version;
 	((struct iphdr*)ip_udp_msg)->ihl = ihl;
 	((struct iphdr*)ip_udp_msg)->tot_len = tot_len;
@@ -30,7 +31,7 @@ char* message(char* ip_udp_msg, char* msg, uint32_t version, uint32_t ihl, uint3
 	((struct iphdr*)ip_udp_msg)->daddr = daddr;
 	((struct iphdr*)ip_udp_msg)->tos = tos;
 	ip_udp_msg += sizeof(struct iphdr);
-	
+	//udp header
 	((struct udphdr*)ip_udp_msg)->dest = dest_port;
 	((struct udphdr*)ip_udp_msg)->source = source_port;
 	((struct udphdr*)ip_udp_msg)->len = len;
@@ -49,7 +50,7 @@ int main()
 
 	struct sockaddr_in serv;
 	serv.sin_family = AF_INET;
-	serv.sin_addr.s_addr = htonl(INADDR_LOOPBACK); 
+	serv.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	serv.sin_port = htons(SOURCE_PORT);
 	socklen_t serv_size = sizeof(serv);
 	//ip header
@@ -74,19 +75,19 @@ int main()
 
 	int fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
 
-	if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, (char *)&OptVal, OptLen) == -1)
+	if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, (char*)&OptVal, OptLen) == -1)
 	{
 		perror("setsockopt error");
 		exit(EXIT_FAILURE);
 	}
 
-	if (fd == -1) 
+	if (fd == -1)
 	{
 		perror("socket create error");
 		exit(EXIT_FAILURE);
 	}
 
-	if (sendto(fd, (char *)payload, sizeof(struct udphdr) + sizeof(struct ip) + sizeof(payload), 0, (struct sockaddr *) &serv, serv_size) == -1) 
+	if (sendto(fd, (char*)payload, sizeof(struct udphdr) + sizeof(struct ip) + sizeof(payload), 0, (struct sockaddr*) &serv, serv_size) == -1) 
 	{
 		perror("sendto error");
 		exit(EXIT_FAILURE);
@@ -94,12 +95,12 @@ int main()
 
 	printf("Отправил серверу: %s\n", str);
 
-	while(1) 
+	while (1)
 	{
-		if (recvfrom(fd, (char *)buf, sizeof(buf), 0, (struct sockaddr *) &serv, &serv_size) == -1) 
+		if (recvfrom(fd, (char*)buf, sizeof(buf), 0, (struct sockaddr*) &serv, &serv_size) == -1)
 		{
 			perror("recvfrom error");
-			exit(EXIT_FAILURE);	
+			exit(EXIT_FAILURE);
 		}
 
 		printf("Получил от сервера: %s\n", buf + sizeof(struct ip) + sizeof(struct udphdr));
