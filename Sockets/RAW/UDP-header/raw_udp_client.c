@@ -34,7 +34,7 @@ int main()
 
 	struct sockaddr_in serv;
 	serv.sin_family = AF_INET;
-	serv.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	serv.sin_addr.s_addr = htonl(INADDR_LOOPBACK); 
 	serv.sin_port = htons(SOURCE_PORT);
 	socklen_t serv_size = sizeof(serv);
 
@@ -42,13 +42,13 @@ int main()
 
 	int fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
 
-	if (fd == -1)
+	if (fd == -1) 
 	{
 		perror("socket create error");
 		exit(EXIT_FAILURE);
 	}
 
-	if (sendto(fd, (char*)msg, sizeof(struct udphdr) + sizeof(msg), 0, (struct sockaddr*)&serv, serv_size) == -1)
+	if (sendto(fd, (char *)msg, sizeof(struct udphdr) + sizeof(msg), 0, (struct sockaddr *) &serv, serv_size) == -1) 
 	{
 		perror("sendto error");
 		exit(EXIT_FAILURE);
@@ -56,12 +56,12 @@ int main()
 
 	printf("Отправил серверу: %s\n", str);
 
-	while (1)
+	while(1) 
 	{
-		if (recvfrom(fd, (char*)buf, sizeof(buf), 0, (struct sockaddr*) &serv, &serv_size) == -1)
+		if (recvfrom(fd, (char *)buf, sizeof(buf), 0, (struct sockaddr *) &serv, &serv_size) == -1) 
 		{
 			perror("recvfrom error");
-			exit(EXIT_FAILURE);
+			exit(EXIT_FAILURE);	
 		}
 
 		printf("Получил от сервера: %s\n", buf + sizeof(struct ip) + sizeof(struct udphdr));

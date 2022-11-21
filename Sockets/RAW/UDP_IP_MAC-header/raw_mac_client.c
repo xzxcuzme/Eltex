@@ -21,25 +21,24 @@
 #define SOURCE_PORT 7777
 #define MESSAGE_SIZE 256
 
-short CRC16(char* ip_hdr) {
+short CRC16(char * ip_hdr) {
 	int csum = 0;
-	short* ptr = (short*)ip_hdr;
+    short* ptr = (short*)ip_hdr;
 
-	for (int i = 0; i < 10; i++) {
-		csum+=*ptr;
-		ptr++;
-	}
+    for (int i = 0; i < 10; i++) {
+    	csum+= *ptr;
+    	ptr++;
+    }
 
-	short tmp = csum >> 16;
-	csum = (csum & 0xFFFF) + tmp;
-	((struct iphdr*)ip_hdr)->check = ~csum;
-	return 0;
+    short tmp = csum >> 16;
+    csum = (csum & 0xFFFF) + tmp;
+    ((struct iphdr*)ip_hdr)->check = ~csum;
+    return 0;
 }
 
 char* message(char* ip_udp_msg, char* msg, uint32_t version, uint32_t ihl, uint32_t tot_len, uint32_t id, uint32_t frag_off,
- uint32_t ttl, uint32_t protocol, uint32_t check, uint32_t saddr, uint32_t daddr, uint32_t tos, unsigned char* source_mac, unsigned char* dest_mac, 
+ uint32_t ttl, uint32_t protocol, uint32_t check, uint32_t saddr, uint32_t daddr, uint32_t tos, unsigned char *source_mac, unsigned char *dest_mac, 
  uint32_t source_port, uint32_t dest_port, uint32_t len, uint32_t checksum) {
-	//ip header
 	((struct iphdr*)ip_udp_msg)->version = version;
 	((struct iphdr*)ip_udp_msg)->ihl = ihl;
 	((struct iphdr*)ip_udp_msg)->tot_len = tot_len;
@@ -56,7 +55,7 @@ char* message(char* ip_udp_msg, char* msg, uint32_t version, uint32_t ihl, uint3
 	((struct ethhdr*)ip_udp_msg)->h_proto = htons(0x08);
 	CRC16(ip_udp_msg);
 	ip_udp_msg += sizeof(struct iphdr);
-	//udp header
+	
 	((struct udphdr*)ip_udp_msg)->dest = dest_port;
 	((struct udphdr*)ip_udp_msg)->source = source_port;
 	((struct udphdr*)ip_udp_msg)->len = len;
@@ -76,11 +75,11 @@ int main()
 	unsigned char dest_mac[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //поменяю
 
 	struct sockaddr_ll serv;
-	serv.sll_family 			= AF_INET;
+	serv.sll_family 			= AF_INET;   
 	serv.sll_protocol 			= 0;
-	serv.sll_ifindex 			= if_nametoindex("enp9s0");
-	serv.sll_hatype 			= 0;
-	serv.sll_pkttype			= 0;
+	serv.sll_ifindex 			= if_nametoindex("enp9s0");;  
+	serv.sll_hatype 			= 0;   
+	serv.sll_pkttype			= 0;  
 	serv.sll_halen 				= 6;
 	serv.sll_addr[6] 			= *source_mac;
 	socklen_t serv_size			= sizeof(serv);
@@ -106,19 +105,19 @@ int main()
 
 	int fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 
-	if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, (char*)&OptVal, OptLen) == -1)
+	if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, (char *)&OptVal, OptLen) == -1)
 	{
 		perror("setsockopt error");
 		exit(EXIT_FAILURE);
 	}
 
-	if (fd == -1)
+	if (fd == -1) 
 	{
 		perror("socket create error");
 		exit(EXIT_FAILURE);
 	}
 
-	if (sendto(fd, (char*)payload, sizeof(struct udphdr) + sizeof(struct ip) + sizeof(payload), 0, (struct sockaddr*) &serv, serv_size) == -1) 
+	if (sendto(fd, (char *)payload, sizeof(struct udphdr) + sizeof(struct ip) + sizeof(payload), 0, (struct sockaddr *) &serv, serv_size) == -1) 
 	{
 		perror("sendto error");
 		exit(EXIT_FAILURE);
@@ -126,12 +125,12 @@ int main()
 
 	printf("Отправил серверу: %s\n", str);
 
-	while (1)
+	while(1) 
 	{
-		if (recvfrom(fd, (char*)buf, sizeof(buf), 0, (struct sockaddr*) &serv, &serv_size) == -1)
+		if (recvfrom(fd, (char *)buf, sizeof(buf), 0, (struct sockaddr *) &serv, &serv_size) == -1) 
 		{
 			perror("recvfrom error");
-			exit(EXIT_FAILURE);
+			exit(EXIT_FAILURE);	
 		}
 
 		printf("Получил от сервера: %s\n", buf + sizeof(struct ip) + sizeof(struct udphdr) + sizeof(struct ethhdr));

@@ -25,30 +25,30 @@ int main()
 
 	int fd = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if (fd == -1)
+	if (fd == -1) 
 	{
 		perror("socket create error");
 		exit(EXIT_FAILURE);
 	}
 
-	if (bind(fd, (struct sockaddr*)&serv, sizeof(serv)) == -1)
+	if (bind(fd, (struct sockaddr *) &serv, sizeof(serv)) == -1) 
 	{
 		perror("bind error");
 		exit(EXIT_FAILURE);
 	}
 
-	if (recvfrom(fd, (char*)buf, sizeof(buf), 0, (struct sockaddr*)&client, &cl_size) == -1)
+	if (recvfrom(fd, (char *)buf, sizeof(buf), 0, (struct sockaddr *) &client, &cl_size) == -1)
 	{
 		perror("recvfrom error");
-		exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);	
 	}
 
 	printf("Получил от клиента: %s\n", buf);
 
-	if (sendto(fd, (char*)str, sizeof(str), 0, (struct sockaddr*)&client, cl_size) == -1)
+	if (sendto(fd, (char *)str, sizeof(str), 0, (struct sockaddr *) &client, cl_size) == -1)
 	{
 		perror("sendto error");
-		exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);	
 	}
 
 	printf("Отправил клиенту: %s\n", str);
